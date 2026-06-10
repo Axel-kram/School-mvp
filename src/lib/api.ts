@@ -66,6 +66,14 @@ export const profile = {
   },
 
   updateStreakIfNeeded: async () => callEdgeFunction('update-streak', {}),
+
+  // Uppdatera adaptiv profil efter en avslutad session
+  updateAdaptiveProfile: async (subject: string, sessionType: 'quiz' | 'flashcards' | 'writing') =>
+    callEdgeFunction('update-profile', { subject, session_type: sessionType }),
+
+  // Hämta anonym AI-kontext (för n8n-flöden som inte redan anropar build-ai-context direkt)
+  getAIContext: async (subject: string) =>
+    callEdgeFunction('build-ai-context', { subject }),
 }
 
 // ─── Study Sessions ───────────────────────────────────────────────────────────
@@ -135,7 +143,10 @@ export const quiz = {
   },
 
   saveResult: async (subject: string, correct: boolean, questionText: string) => {
-    return callEdgeFunction('save-quiz-result', { subject, correct, question_text: questionText })
+    const result = await callEdgeFunction('save-quiz-result', { subject, correct, question_text: questionText })
+    // Uppdatera adaptiv profil asynkront — vänta inte på svar
+    callEdgeFunction('update-profile', { subject, session_type: 'quiz' }).catch(() => {})
+    return result
   },
 }
 
@@ -157,6 +168,8 @@ export const flashcards = {
     await supabase.from('flashcard_results').insert({
       user_id: user.id, subject, card_front: cardFront, card_back: cardBack, knew,
     })
+    // Uppdatera adaptiv profil asynkront efter varje flashcard-svar
+    callEdgeFunction('update-profile', { subject, session_type: 'flashcards' }).catch(() => {})
   },
 }
 
@@ -192,6 +205,8 @@ export const writing = {
       feedback_structure: feedback.feedback_structure,
       feedback_language: feedback.feedback_language,
     })
+    // Uppdatera adaptiv profil baserat på skrivfeedback
+    callEdgeFunction('update-profile', { subject, session_type: 'writing' }).catch(() => {})
   },
 }
 
