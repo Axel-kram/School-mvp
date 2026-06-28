@@ -1,0 +1,120 @@
+import React, { useEffect, useState, useRef } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { material as materialApi, classes as classesApi } from '../lib/api'
+import { TeacherMaterial, SchoolClass } from '../lib/supabase'
+
+const STATUS_LABEL: Record<TeacherMaterial['status'], string> = {
+  processing: 'Bearbetar…',
+  ready: 'Klart',
+  failed: 'Misslyckades',
+}
+
+export function TeacherClassPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [cls, setCls] = useState<SchoolClass | null>(null)
+  const [items, setItems] = useState<TeacherMaterial[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [title, setTitle] = useState('')
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+
+  useEffect(() => {
+    if (!id) return
+    refresh()
+    // Enkel polling var 4s tills material är klarbearbetat — ersätter realtids-subscription
+    const interval = setInterval(refresh, 4000)
+    return () => clearInterval(interval)
+  }, [id])
+
+  async function refresh() {
+    if (!id) return
+    const all = await classesApi.getMine()
+    setCls(all.find(c => c.id === id) ?? null)
+    const mats = await materialApi.getForClass(id)
+    setItems(mats)
+  }
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPendingFile(file)
+    if (!title) setTitle(file.name.replace(/\.[^.]+$/, ''))
+  }
+
+  async function handleUpload() {
+    if (!id || !pendingFile || !title.trim()) return
+    setUploading(true)
+    try {
+      await materialApi.upload(id, title.trim(), pendingFile)
+      setPendingFile(null)
+      setTitle('')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      await refresh()
+    } catch (e) {
+      alert('Kunde inte ladda upp materialet. Försök igen.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function handleDelete(materialId: string) {
+    await materialApi.delete(materialId)
+    await refresh()
+  }
+
+  return (
+    <div className="app-shell">
+      <div className="topbar" style={{ paddingBottom: 16 }}>
+        <button className="back-btn" onClick={() => navigate('/teacher')}>← Mina klasser</button>
+      </div>
+
+      <div className="page-content">
+        {cls && (
+          <>
+            <div className="page-title">{cls.name}</div>
+            <p className="subtitle">{cls.subject} · Delningskod: <b>{cls.join_code}</b></p>
+          </>
+        )}
+
+        <div className="card-accent">
+          <div className="form-group">
+            <label className="form-label">Ladda upp material (PDF, Word eller textfil)</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.txt"
+              onChange={handleFileSelect}
+              style={{ fontSize: 13 }}
+            />
+          </div>
+          {pendingFile && (
+            <div className="form-group">
+              <label className="form-label">Titel på materialet</label>
+              <input className="input" value={title} onChange={e => setTitle(e.target.value)} />
+            </div>
+          )}
+          <button className="btn-primary" disabled={!pendingFile || uploading || !title.trim()} onClick={handleUpload}>
+            {uploading ? 'Laddar upp…' : 'Ladda upp'}
+          </button>
+        </div>
+
+        <div className="section-label" style={{ marginTop: 20 }}>Uppladdat material</div>
+        {items.length === 0 ? (
+          <div className="empty-state">Inget material uppladdat än. AI:n utgår från Skolverkets kursplaner tills du laddar upp något.</div>
+        ) : (
+          items.map(m => (
+            <div key={m.id} className="exam-card">
+              <div>
+                <div className="exam-subject">{m.title}</div>
+                <div className="exam-date">{STATUS_LABEL[m.status]}</div>
+              </div>
+              <button className="btn-ghost" onClick={() => handleDelete(m.id)}>Ta bort</button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
