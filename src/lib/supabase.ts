@@ -81,3 +81,13 @@ export interface FlashcardResult {
   knew: boolean
   created_at: string
 }
+
+export interface StudyAlarm {
+  id: string
+  user_id: string
+  time_of_day: string
+  days_of_week: number[]
+  subject: string
+  active: boolean
+  created_at: string
+}
