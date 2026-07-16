@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -57,32 +57,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null }
   }
 
+  // Profilen skapas av databastriggern on_auth_user_created, i samma ogonblick
+  // som kontot. Ingen manuell insert har - den orsakade kapplopningen dar vyn
+  // hann fraga efter profilen innan den fanns.
   async function signUp({ email, password, role, schoolId, username }: SignUpParams): Promise<AuthResult> {
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { role } },
+      options: {
+        data: {
+          role,
+          school_id: schoolId,
+          username: username.trim(),
+        },
+      },
     })
     if (error) return { error: mapAuthError(error.message) }
-
-    const newUser = data.user
-    if (!newUser) {
-      return {
-        error: 'Kontot skapades, men kunde inte loggas in direkt. Kontrollera din e-post eller försök logga in manuellt.',
-      }
-    }
-
-    const table = role === 'teacher' ? 'teacher_profiles' : 'student_profiles'
-    const { error: profileError } = await supabase.from(table).insert({
-      user_id: newUser.id,
-      school_id: schoolId,
-      username: username.trim(),
-    })
-
-    if (profileError) {
-      return { error: 'Kontot skapades, men profilen kunde inte sparas: ' + profileError.message }
-    }
-
     return { error: null }
   }
 
@@ -99,22 +89,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth måste användas inom en <AuthProvider>')
+  if (!ctx) throw new Error('useAuth maste anvandas inom en <AuthProvider>')
   return ctx
 }
 
 function mapAuthError(message: string): string {
   if (message.includes('Invalid login credentials')) {
-    return 'Fel e-post eller lösenord.'
+    return 'Fel e-post eller losenord.'
   }
   if (message.includes('User already registered')) {
-    return 'Det finns redan ett konto med den här e-postadressen.'
+    return 'Det finns redan ett konto med den har e-postadressen.'
   }
   if (message.toLowerCase().includes('password should be at least')) {
-    return 'Lösenordet måste vara minst 8 tecken.'
+    return 'Losenordet maste vara minst 8 tecken.'
   }
   if (message.toLowerCase().includes('email not confirmed')) {
-    return 'E-postadressen är inte bekräftad än. Kolla din inkorg.'
+    return 'E-postadressen ar inte bekraftad an. Kolla din inkorg.'
+  }
+  if (message.toLowerCase().includes('database error')) {
+    return 'Kontot kunde inte skapas just nu. Forsok igen om en stund.'
   }
   return message
 }
