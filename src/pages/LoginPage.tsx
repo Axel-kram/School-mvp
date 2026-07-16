@@ -1,161 +1,251 @@
-import React, { useState } from 'react'
-import { auth } from '../lib/api'
+﻿import { useState } from 'react'
+import type { FormEvent } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import type { Role } from '../lib/supabase'
+import { SchoolSelect } from '../components/SchoolSelect'
 
 type Mode = 'login' | 'signup'
 
 export function LoginPage() {
+  const { signIn, signUp } = useAuth()
+
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [username, setUsername] = useState('')
+  const [role, setRole] = useState<Role>('student')
+  const [schoolId, setSchoolId] = useState<string | null>(null)
+
   const [error, setError] = useState<string | null>(null)
-  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = async () => {
+  function resetMessages() {
     setError(null)
-    setSuccessMsg(null)
-
-    if (!email.trim()) { setError('Ange din e-postadress.'); return }
-    if (password.length < 6) { setError('Lösenordet måste vara minst 6 tecken.'); return }
-
-    setLoading(true)
-
-    if (mode === 'login') {
-      const { error } = await auth.signInWithEmail(email.trim(), password)
-      if (error) {
-        setError(
-          error.message.includes('Invalid login')
-            ? 'Fel e-post eller lösenord. Försök igen.'
-            : 'Inloggningen misslyckades. Försök igen.'
-        )
-        setLoading(false)
-      }
-      // Vid lyckad inloggning navigerar AuthProvider automatiskt via onAuthStateChange
-    } else {
-      const { error } = await auth.signUpWithEmail(email.trim(), password)
-      if (error) {
-        setError(
-          error.message.includes('already registered')
-            ? 'Det finns redan ett konto med den e-postadressen. Logga in istället.'
-            : 'Kunde inte skapa konto. Försök igen.'
-        )
-        setLoading(false)
-      } else {
-        setSuccessMsg('Konto skapat! Kontrollera din e-post för att bekräfta kontot, sedan kan du logga in.')
-        setMode('login')
-        setPassword('')
-        setLoading(false)
-      }
-    }
+    setInfo(null)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSubmit()
+  function switchMode(next: Mode) {
+    resetMessages()
+    setMode(next)
+  }
+
+  async function handleLogin(e: FormEvent) {
+    e.preventDefault()
+    resetMessages()
+
+    if (!email || !password) {
+      setError('Fyll i både e-post och lösenord.')
+      return
+    }
+
+    setSubmitting(true)
+    const { error } = await signIn(email, password)
+    setSubmitting(false)
+
+    if (error) setError(error)
+  }
+
+  async function handleSignup(e: FormEvent) {
+    e.preventDefault()
+    resetMessages()
+
+    if (!email || !password || !confirmPassword) {
+      setError('Fyll i alla fält.')
+      return
+    }
+    if (!username.trim()) {
+      setError('Fyll i ett användarnamn.')
+      return
+    }
+    if (password.length < 8) {
+      setError('Lösenordet måste vara minst 8 tecken.')
+      return
+    }
+    if (password !== confirmPassword) {
+      setError('Lösenorden matchar inte.')
+      return
+    }
+    if (!schoolId) {
+      setError('Välj din skola innan du skapar kontot.')
+      return
+    }
+
+    setSubmitting(true)
+    const { error } = await signUp({ email, password, role, schoolId, username })
+    setSubmitting(false)
+
+    if (error) {
+      setError(error)
+      return
+    }
+
+    setInfo('Kontot är skapat! Kontrollera din e-post om du behöver bekräfta adressen innan du kan logga in.')
+    setMode('login')
+    setPassword('')
+    setConfirmPassword('')
   }
 
   return (
-    <div className="login-page">
-      <div className="login-logo">SkolAI</div>
-      <p className="login-tagline">
-        Din personliga studiepartner.<br />
-        Anpassad efter dina mål.
-      </p>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-brand">
+          <span className="auth-brand-mark" aria-hidden="true" />
+          <span className="auth-brand-name">SkolAI</span>
+        </div>
 
-      {/* Mode toggle */}
-      <div style={{
-        display: 'flex',
-        background: 'var(--bg2)',
-        borderRadius: 'var(--radius-md)',
-        padding: 4,
-        marginBottom: 24,
-        width: '100%',
-        maxWidth: 320,
-      }}>
-        {(['login', 'signup'] as Mode[]).map(m => (
+        <div className="auth-tabs" role="tablist">
           <button
-            key={m}
-            onClick={() => { setMode(m); setError(null); setSuccessMsg(null) }}
-            style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              background: mode === m ? 'var(--bg0)' : 'transparent',
-              color: mode === m ? 'var(--text1)' : 'var(--text3)',
-              fontWeight: mode === m ? 500 : 400,
-              fontSize: 13,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              boxShadow: mode === m ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s',
-            }}
+            type="button"
+            role="tab"
+            aria-selected={mode === 'login'}
+            className={'auth-tab' + (mode === 'login' ? ' auth-tab-active' : '')}
+            onClick={() => switchMode('login')}
           >
-            {m === 'login' ? 'Logga in' : 'Skapa konto'}
+            Logga in
           </button>
-        ))}
-      </div>
-
-      {/* Form */}
-      <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div>
-          <label className="form-label">E-postadress</label>
-          <input
-            type="email"
-            className="input"
-            placeholder="din@skola.se"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={loading}
-            autoComplete="email"
-          />
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'signup'}
+            className={'auth-tab' + (mode === 'signup' ? ' auth-tab-active' : '')}
+            onClick={() => switchMode('signup')}
+          >
+            Skapa konto
+          </button>
         </div>
 
-        <div>
-          <label className="form-label">Lösenord</label>
-          <input
-            type="password"
-            className="input"
-            placeholder={mode === 'signup' ? 'Minst 6 tecken' : '••••••••'}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={loading}
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          />
-        </div>
+        {info && <p className="auth-info">{info}</p>}
+        {error && <p className="auth-error" role="alert">{error}</p>}
 
-        {error && (
-          <div className="feedback-bad" style={{ fontSize: 13 }}>
-            {error}
-          </div>
+        {mode === 'login' ? (
+          <form className="auth-form" onSubmit={handleLogin} noValidate>
+            <div className="field">
+              <label className="field-label" htmlFor="login-email">
+                E-post
+              </label>
+              <input
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="field">
+              <label className="field-label" htmlFor="login-password">
+                Lösenord
+              </label>
+              <input
+                id="login-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn-primary btn-full" disabled={submitting}>
+              {submitting ? 'Loggar in…' : 'Logga in'}
+            </button>
+          </form>
+        ) : (
+          <form className="auth-form" onSubmit={handleSignup} noValidate>
+            <div className="field">
+              <label className="field-label" htmlFor="signup-username">
+                Användarnamn
+              </label>
+              <input
+                id="signup-username"
+                type="text"
+                autoComplete="nickname"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label className="field-label" htmlFor="signup-email">
+                E-post
+              </label>
+              <input
+                id="signup-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="field-row">
+              <div className="field">
+                <label className="field-label" htmlFor="signup-password">
+                  Lösenord
+                </label>
+                <input
+                  id="signup-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+              <div className="field">
+                <label className="field-label" htmlFor="signup-confirm">
+                  Bekräfta lösenord
+                </label>
+                <input
+                  id="signup-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <span className="field-label">Jag är…</span>
+              <div className="role-toggle" role="radiogroup" aria-label="Välj roll">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={role === 'student'}
+                  className={'role-option' + (role === 'student' ? ' role-option-active' : '')}
+                  onClick={() => setRole('student')}
+                >
+                  Elev
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={role === 'teacher'}
+                  className={'role-option' + (role === 'teacher' ? ' role-option-active' : '')}
+                  onClick={() => setRole('teacher')}
+                >
+                  Lärare
+                </button>
+              </div>
+            </div>
+
+            <div className="field">
+              <SchoolSelect value={schoolId} onChange={setSchoolId} />
+            </div>
+
+            <button type="submit" className="btn-primary btn-full" disabled={submitting}>
+              {submitting ? 'Skapar konto…' : 'Skapa konto'}
+            </button>
+          </form>
         )}
-
-        {successMsg && (
-          <div className="feedback-good" style={{ fontSize: 13 }}>
-            {successMsg}
-          </div>
-        )}
-
-        <button
-          className="btn-primary"
-          onClick={handleSubmit}
-          disabled={loading}
-          style={{ marginTop: 4 }}
-        >
-          {loading
-            ? mode === 'login' ? 'Loggar in…' : 'Skapar konto…'
-            : mode === 'login' ? 'Logga in' : 'Skapa konto'}
-        </button>
       </div>
-
-      <p style={{
-        marginTop: 32, fontSize: 11, color: 'var(--text3)',
-        textAlign: 'center', maxWidth: 280, lineHeight: 1.6,
-      }}>
-        Dina data lagras säkert på svenska servrar.<br />
-        Vi skickar aldrig ditt namn eller din e-post till AI-modellen.
-      </p>
     </div>
   )
 }
