@@ -1,0 +1,1421 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkolAI — Samlad kunskapsbas och arbetsplan (v6)</title>
+<style>
+
+  :root {
+    --navy-deep:#0a1628; --navy:#0f2240; --navy-mid:#16315c; --navy-line:#2a4570;
+    --blue-accent:#3d6fd6; --blue-bright:#5b8def;
+    --white:#ffffff; --paper:#f7f9fc; --ink:#0a1628; --ink-soft:#45587a;
+    --ok:#2e9e6b; --ok-bg:#e7f7ef;
+    --warn:#c98a1f; --warn-bg:#fdf3e0;
+    --bad:#c0392b; --bad-bg:#fbe9e7;
+    --radius:10px;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; background:var(--paper); color:var(--ink); line-height:1.65; }
+  .wrap { max-width:980px; margin:0 auto; padding:0 28px 110px; }
+  .hero { background:linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 55%, var(--navy-mid) 100%); color:var(--white); padding:64px 28px 50px; }
+  .hero-inner { max-width:980px; margin:0 auto; }
+  .hero-eyebrow { font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--blue-bright); font-weight:600; margin-bottom:14px; }
+  .hero h1 { font-size:34px; font-weight:700; margin:0 0 14px; letter-spacing:-.01em; max-width:740px; }
+  .hero p.lead { font-size:15px; color:#c4d2ec; max-width:680px; margin:0 0 26px; }
+  .hero-meta { display:flex; gap:28px; flex-wrap:wrap; padding-top:22px; border-top:1px solid rgba(255,255,255,.14); }
+  .hero-meta-item .num { font-size:24px; font-weight:700; color:var(--white); }
+  .hero-meta-item .lbl { font-size:12px; color:#9fb3d8; margin-top:2px; }
+
+  nav.toc { background:var(--white); border:1px solid #dde4f0; border-radius:var(--radius); padding:22px 26px; margin-top:-30px; position:relative; z-index:2; box-shadow:0 8px 24px rgba(10,22,40,.08); }
+  nav.toc h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin:0 0 12px; }
+  nav.toc ol { margin:0; padding-left:20px; columns:2; column-gap:30px; }
+  nav.toc li { font-size:13px; margin-bottom:7px; break-inside:avoid; }
+  nav.toc a { color:var(--blue-accent); text-decoration:none; font-weight:600; }
+  nav.toc a:hover { text-decoration:underline; }
+  nav.toc ol ol { columns:1; margin-top:4px; padding-left:16px; }
+  nav.toc ol ol li { font-weight:400; font-size:12.5px; }
+
+  section { margin-top:46px; }
+  h1.sec-title { display:flex; align-items:baseline; gap:12px; margin:0 0 6px; border-bottom:2px solid var(--navy); padding-bottom:10px; font-size:21px; color:var(--navy-deep); }
+  .sec-num { font-size:13px; font-weight:700; color:var(--white); background:var(--navy); border-radius:6px; padding:3px 9px; flex-shrink:0; }
+  .sec-priority { font-size:11px; font-weight:700; color:var(--bad); background:var(--bad-bg); padding:3px 10px; border-radius:999px; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; margin-left:auto; }
+  .sec-sub { font-size:13.5px; color:var(--ink-soft); margin:10px 0 18px; max-width:720px; }
+  h2.sub-title { font-size:16.5px; color:var(--navy-deep); margin:26px 0 10px; }
+  h3.sub-sub-title { font-size:14.5px; color:var(--navy-deep); margin:18px 0 8px; }
+
+  .card { background:var(--white); border:1px solid #dde4f0; border-left:4px solid var(--navy-line); border-radius:var(--radius); padding:18px 22px; margin-bottom:14px; }
+  .card.ok { border-left-color:var(--ok); }
+  .card.warn { border-left-color:var(--warn); }
+  .card.bad { border-left-color:var(--bad); }
+  .card-title { font-size:15px; font-weight:700; color:var(--navy-deep); margin-bottom:8px; }
+  .card-body { font-size:13.5px; color:#2c3a52; }
+  .card-body p { margin:0 0 8px; }
+  .card-body code { background:var(--navy-deep); color:#cfe0ff; padding:2px 6px; border-radius:5px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12px; }
+  .card-body ul, .card-body ol { margin:8px 0; padding-left:18px; }
+  .card-body li { margin-bottom:5px; }
+
+  .badge { display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; letter-spacing:.02em; padding:3px 9px; border-radius:999px; text-transform:uppercase; }
+  .badge-ok { background:var(--ok-bg); color:var(--ok); }
+  .badge-warn { background:var(--warn-bg); color:var(--warn); }
+  .badge-bad { background:var(--bad-bg); color:var(--bad); }
+  .badge-info { background:#e7edfa; color:var(--blue-accent); }
+
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  th { text-align:left; background:var(--navy); color:var(--white); padding:9px 12px; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.03em; }
+  th:first-child{border-radius:8px 0 0 0;} th:last-child{border-radius:0 8px 0 0;}
+  td { padding:9px 12px; border-bottom:1px solid #e3e9f3; background:var(--white); vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+
+  .callout { background:var(--navy-deep); color:var(--white); border-radius:var(--radius); padding:20px 24px; margin:18px 0; }
+  .callout h3 { margin:0 0 8px; font-size:14px; color:var(--blue-bright); }
+  .callout p { margin:0; font-size:13.5px; color:#d2deef; line-height:1.65; }
+
+  pre.code-block {
+    background:var(--navy-deep); color:#cfe0ff; border-radius:var(--radius);
+    padding:18px 22px; font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12.5px;
+    line-height:1.7; overflow-x:auto; margin:10px 0;
+  }
+  pre.code-block .kw { color:var(--blue-bright); }
+  pre.code-block .com { color:#6c83ab; }
+  pre.code-block .str { color:#a9d68c; }
+
+  .file-tree { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12.5px; background:var(--navy-deep); color:#cfe0ff; border-radius:var(--radius); padding:18px 22px; line-height:1.8; overflow-x:auto; }
+  .file-tree .dir { color:var(--blue-bright); font-weight:700; }
+  .file-tree .comment { color:#6c83ab; }
+
+  .er-diagram { background:var(--white); border:1px solid #dde4f0; border-radius:var(--radius); padding:20px; font-size:12.5px; }
+  .er-table { display:inline-block; background:var(--paper); border:1.5px solid var(--navy-mid); border-radius:8px; margin:6px; padding:10px 14px; vertical-align:top; }
+  .er-table .er-name { font-weight:700; color:var(--navy-deep); font-size:13px; margin-bottom:6px; border-bottom:1px solid var(--navy-line); padding-bottom:4px; }
+  .er-table .er-field { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:11.5px; color:#2c3a52; }
+  .er-table .er-field.pk { color:var(--blue-accent); font-weight:700; }
+  .er-table .er-field.fk { color:var(--warn); }
+  .arrow { color:var(--ink-soft); font-weight:700; margin:0 6px; }
+
+  .step { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid #eef1f8; font-size:13.5px; }
+  .step:last-child{border-bottom:none;}
+  .step-num { flex-shrink:0; width:22px; height:22px; border-radius:50%; background:var(--navy); color:var(--white); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+
+  .chat-card { background:var(--white); border:1px solid #dde4f0; border-radius:var(--radius); margin-bottom:18px; overflow:hidden; }
+  .chat-head { background:var(--navy-deep); color:var(--white); padding:14px 22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  .chat-head .c-title { font-size:15px; font-weight:700; }
+  .chat-head .c-tag { font-size:10.5px; background:rgba(255,255,255,.14); padding:3px 10px; border-radius:999px; font-weight:600; text-transform:uppercase; letter-spacing:.03em; }
+  .chat-body { padding:16px 22px; font-size:13.5px; color:#2c3a52; }
+  .chat-field { margin-bottom:10px; }
+  .chat-field b { color:var(--navy-deep); display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; margin-bottom:3px; }
+  .chat-field ul { margin:4px 0; padding-left:18px; }
+
+  .howto { background:var(--ok-bg); border:1px solid #b9e3cb; border-radius:var(--radius); padding:18px 22px; font-size:13.5px; color:#1f6e4a; }
+  .howto b { color:#155c3c; }
+
+  footer { text-align:center; padding:40px 0 10px; font-size:12px; color:var(--ink-soft); }
+
+  @media (max-width:640px) {
+    .hero h1 { font-size:24px; }
+    nav.toc ol { columns:1; }
+  }
+  .diff-table td.was { color:var(--bad); }
+  .diff-table td.is { color:var(--ok); font-weight:600; }
+  .path { font-family:"SF Mono",Menlo,Consolas,monospace; font-size:12px; background:#e7edfa; color:var(--navy-deep); padding:2px 6px; border-radius:5px; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Samlad kunskapsbas · SkolAI · v6</div>
+    <h1>SkolAI — gemensam kunskapsbas och arbetsplan</h1>
+    <p class="lead">
+      Detta dokument ersätter v3 helt. v3 beskrev ett projekt som inte fanns: den påstod att Chatt 2–8 var
+      "ej påbörjat" när i själva verket varje sida, hook och databasfunktion redan var byggd. Den felaktiga
+      bilden kostade en hel kvälls arbete den 16 juli. <b>v4 är skriven mot den faktiska databasen och den
+      faktiska koden</b>, verifierad genom körning — inte mot minnet av vad som en gång planerades.
+    </p>
+    <p class="lead">
+      <b>Nytt i v6:</b> <a href="#s12">sektion 12 — materialdelen, komplett spec</a>. Fem fällor som spränger
+      bygget om de tas i fel ordning: PDF-extraktion, autentisering av webhooken, "Sam" som redan ligger i
+      databasen, tokengräns, och hur du överhuvudtaget verifierar att materialet nådde fram. Läs 12 innan du
+      rör materialdelen.<br>
+      <b>Från v5 (17 juli):</b> AI-kedjan fungerar — <code>/chat</code> svarar med riktiga Claude-svar i appen.
+      Alla tolv elevsidor renderar. Webhook-kontrakt i 6.8. v4:s "blockerare 5.1" var feldiagnostiserad.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><div class="num">17 aug</div><div class="lbl">deadline — skolstart, Umeå</div></div>
+      <div class="hero-meta-item"><div class="num">~4,5</div><div class="lbl">veckor kvar</div></div>
+      <div class="hero-meta-item"><div class="num">12 / 12</div><div class="lbl">elevsidor renderar</div></div>
+      <div class="hero-meta-item"><div class="num">AI ✓</div><div class="lbl">chatten svarar — lokalt</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h2>Innehåll</h2>
+  <ol>
+    <li><a href="#s0">Status just nu &amp; nästa steg</a></li>
+    <li><a href="#s1">Vad v3 hade fel om — läs detta först</a></li>
+    <li><a href="#s2">Var koden och verktygen faktiskt ligger</a></li>
+    <li><a href="#s3">Databasen — verifierad sanning</a></li>
+    <li><a href="#s4">Frontend — verifierad status</a></li>
+    <li><a href="#s5">Kända buggar och luckor</a></li>
+    <li><a href="#s6">Fällor som redan kostat timmar</a></li>
+    <li><a href="#s7">Arbetsordning framåt</a></li>
+    <li><a href="#s8">Mål, målgrupp och tekniska komponenter</a></li>
+    <li><a href="#s9">Säkerhet och GDPR</a></li>
+    <li><a href="#s10">Öppna beslut</a></li>
+    <li><a href="#s11">Hur du använder denna kunskapsbas</a></li>
+    <li><a href="#s12"><b>Materialdelen — komplett spec</b></a></li>
+  </ol>
+</nav>
+
+<section id="s0">
+  <h1 class="sec-title"><span class="sec-num">00</span> Status just nu &amp; nästa steg <span class="sec-priority">Börja här</span></h1>
+  <p class="sec-sub">
+    Senast uppdaterad: <b>17 juli 2026</b>, efter sessionen där n8n-flödet byggdes om från grunden och
+    AI-chatten svarade i appen för första gången. Allt nedan är verifierat genom körning eller
+    genom direkta frågor mot databasen — inget är antaget.
+  </p>
+
+  <h2 class="sub-title">Verifierat klart</h2>
+
+  <div class="card ok">
+    <div class="card-title"><span class="badge badge-ok">17 juli — bevisat</span> AI-kedjan svarar</div>
+    <div class="card-body">
+      <p>Nytt n8n-flöde <code>SkolAI — Chat</code> byggt från grunden: Webhook → Bygg prompt → Anthropic →
+      Plocka svar → Svara appen. Eleven ställer en fråga i appen och får ett riktigt Claude-svar på svenska,
+      anpassat till betygsmål. <b>Detta är första gången produkten gör det den ska.</b></p>
+      <p>De nio gamla flödena är <b>raderade</b>. De var obekräftade och ingen visste vad de innehöll.
+      Filen <code>skolai-chat.json</code> är den enda som gäller.</p>
+      <p><b>Viktigt:</b> flödet anropar INTE <code>build-ai-context</code> — se 5.9. Det använder bara det
+      frontend skickar med. Medvetet val för att få något bevisat fungerande först.</p>
+    </div>
+  </div>
+
+  <div class="card ok">
+    <div class="card-title"><span class="badge badge-ok">17 juli — bevisat</span> Alla tolv elevsidor renderar</div>
+    <div class="card-body">
+      <p>Chat, Quiz, Flashcards, Skrivuppgift, Provfrågor, Pluggtimer, Provplanering, Plugglarm, Dashboard,
+      Profil — ingen kraschar. Timer, Prov, Larm och Profil fungerar helt utan n8n.</p>
+      <p>Blockeraren var <b>inte</b> Vite-cache som v4 påstod, utan felaktig importsyntax i fyra filer (5.1).
+      Koden hade varit trasig sedan juni — ingen märkte det eftersom sidorna inte var inkopplade i routingen.</p>
+    </div>
+  </div>
+
+  <div class="card ok">
+    <div class="card-title"><span class="badge badge-ok">Bevisat i körning</span> Hela kedjan registrering → klass → join-kod → medlemskap</div>
+    <div class="card-body">
+      <p>Den 16 juli kördes för första gången: lärare registrerad med skola → klass skapad (namn + ämne) →
+      join-kod <code>0D3A8B</code> visad i klassvyn → elev registrerad → elev skrev in koden → klassen dök upp
+      i elevens "Dina klasser". Noll fel i konsolen.</p>
+      <p><b>Detta uppfyller Chatt 1:s kriterium</b> som stått som "ej bekräftat" sedan juni — med undantag för
+      fel-skola-fallet, se 5.2.</p>
+    </div>
+  </div>
+
+  <div class="card ok">
+    <div class="card-title"><span class="badge badge-ok">Kört</span> SQL-migrationerna</div>
+    <div class="card-body">
+      <p><code>schools</code>, <code>school_id</code> på alla tre profiltabeller, <code>student_class_memberships</code>,
+      <code>subject</code> på <code>classes</code>, samtliga RLS-policyer, hjälpfunktioner och två triggers.
+      Kört via Supabase SQL Editor, inte via CLI (se 6.4 om varför).</p>
+    </div>
+  </div>
+
+  <div class="card ok">
+    <div class="card-title"><span class="badge badge-ok">Löst</span> Fyra buggar som blockerade allt</div>
+    <div class="card-body">
+      <ul>
+        <li><b>Saknad <code>username</code>-kolumn</b> — koden skickade <code>username</code> vid registrering,
+        kolumnen fanns inte. Profilen sparades aldrig, allt annat gav 406. Kolumnen är nu tillagd på båda profiltabellerna.</li>
+        <li><b>Oändlig RLS-rekursion</b> — policyn på <code>classes</code> frågade <code>student_class_memberships</code>,
+        vars policy frågade <code>classes</code>. Postgres gav 500. Löst med <code>security definer</code>-hjälpfunktioner
+        som bryter ringen (se 3.4).</li>
+        <li><b>Kapplöpning vid signup</b> — <code>signUp()</code> skapade profilen manuellt, men
+        <code>onAuthStateChange</code> hann routa till dashboarden och fråga efter profilen först. Gav
+        "Kunde inte hämta din profil" för varje ny användare; loggade man ut och in fungerade det.
+        Löst: profilen skapas nu av databastriggern <code>on_auth_user_created</code>.</li>
+        <li><b>Teckenkodning</b> — Notepad sparade <code>useAuth.tsx</code> som UTF-16 och som
+        <code>useAuth.tsx.txt</code>. Vite kunde inte läsa filen ("does not provide an export named 'useAuth'").
+        Se 6.1 — detta kommer hända igen.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card ok">
+    <div class="card-title"><span class="badge badge-ok">Sammanslaget</span> Projektet ligger nu på ett ställe</div>
+    <div class="card-body">
+      <p>Koden fanns i tre kopior: en med git-historik men gammal kod, en med juli-arbetet men utan git,
+      en i Downloads. Juli-arbetet är nu kopierat in i git-repot och committat. Se 2.1 — och radera de gamla.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">Pågående — inte klart</h2>
+
+  <div class="card warn">
+    <div class="card-title"><span class="badge badge-warn">Halvvägs</span> Frontend-koppling (elevsidan)</div>
+    <div class="card-body">
+      <p>Alla tolv elevsidor är nu inkopplade i <code>StudentRoutes.tsx</code>, <code>useProfile</code> är
+      omskriven som context, dashboarden har klasskort och genvägar. <b>Men det sista testet gjordes aldrig</b> —
+      Vite serverade cachade moduler och gav ett falskt <code>StudyAlarm</code>-fel. Se 5.1: rensa cachen,
+      starta om, verifiera att sidorna öppnas.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">Inte påbörjat — och viktigare än det låter</h2>
+
+  <div class="card bad">
+    <div class="card-title"><span class="badge badge-bad">Ej byggt</span> build-ai-context hämtar inget lärarmaterial</div>
+    <div class="card-body">
+      <p>v3 kallade detta "en omskrivning för flera klasser per ämne". Det är fel. Funktionen slår inte upp
+      klasser <b>alls</b> — ingen <code>student_class_memberships</code>, ingen <code>teacher_materials</code>,
+      ingen <code>class_id</code>. Den hämtar profil, prov, sessioner och quizstatistik. Materialdelen finns inte.</p>
+      <p><b>Detta är hela produktidén.</b> "AI:n svarar utifrån exakt det klassen jobbar med" är det som skiljer
+      SkolAI från ChatGPT. Just nu gör den det inte. Det är det enskilt viktigaste som återstår.</p>
+    </div>
+  </div>
+
+  <div class="card bad">
+    <div class="card-title"><span class="badge badge-bad">Ej byggt</span> Streak på larm</div>
+    <div class="card-body">
+      <p>Beslut 16 juli: streaken ska räkna <b>följda plugg-larm</b>, inte pluggdagar. Befintlig
+      <code>update-streak</code> räknar sammanhängande dagar med minst en 60-sekunderssession, med grace-dag
+      efter 6 dagar. Den måste skrivas om, och det behövs en tabell som loggar att ett larm faktiskt följdes.
+      Hör till Chatt 5.</p>
+      <p><b>Invändning som är värd att väga en gång till:</b> en elev som pluggar 40 minuter utan larm får noll.
+      Du belönar följsamhet mot schemat, inte pluggandet. Duolingos streak drivs av kärnhandlingen; notisen
+      skyddar streaken, den <i>är</i> den inte.</p>
+    </div>
+  </div>
+
+  <div class="card bad">
+    <div class="card-title"><span class="badge badge-bad">Ej gjort</span> n8n ligger fortfarande på en laptop</div>
+    <div class="card-body">
+      <p>Flödet fungerar — men bara när Mimmis dator är på och <code>npx n8n</code> kör. Är den nedfälld får
+      eleven som pluggar 20:30 ingenting. Gratisnivå hos Railway eller Render räcker för en pilot.</p>
+      <p><b>Sex flöden återstår att bygga:</b> quiz, flashcards, skrivuppgift, skrivfeedback, provfrågor,
+      betygsättning. Mönstret är bevisat — se kontrakten i 6.8. Bygg dem först när <code>/chat</code> är
+      flyttad till hosting, annars ska sex flöden migreras istället för ett.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">Nästa steg, i ordning</h2>
+  <div class="card">
+    <div class="card-body">
+      <div class="step"><span class="step-num">1</span><div><b>Materialdelen — <a href="#s12">se sektion 12</a>.</b> Kör verifierings-SQL:en i 12.1 innan något annat. Fem fällor väntar; tre av dem måste beslutas innan tabellen skapas.</div></div>
+      <div class="step"><span class="step-num">2</span><div><b>Ämnesdropdown + backfill av "Sam"</b> (12.4) — hör till samma chatt som materialtabellen. Utan backfill matchar din egen testklass aldrig.</div></div>
+      <div class="step"><span class="step-num">3</span><div><b>n8n till publik hosting</b> — Railway/Render. Blockerar allt skarpt test.</div></div>
+      <div class="step"><span class="step-num">4</span><div><b>Fel-skola-testet</b> (5.2) — stänger Chatt 1 på riktigt</div></div>
+      <div class="step"><span class="step-num">5</span><div><b>De sex kvarvarande n8n-flödena</b> (6.8) — efter hosting</div></div>
+      <div class="step"><span class="step-num">6</span><div><b>Städning + säkerhet</b> — byt DB-lösenord, <code>push_subscriptions</code> i GDPR-radering, RLS-dubbletter</div></div>
+      <div class="step"><span class="step-num">7</span><div><b>Personuppgiftsbiträdesavtal</b> — kan stoppa piloten oavsett kod. Är en process med skolan, inte en kodfix. Börja i tid.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="s1">
+  <h1 class="sec-title"><span class="sec-num">01</span> Vad v3 hade fel om <span class="sec-priority">Läs först</span></h1>
+  <p class="sec-sub">
+    Om du är en AI-modell som får detta dokument som kontext: sektionen finns för att du inte ska upprepa
+    misstaget att bygga mot dokumentet istället för mot verkligheten. v3 var internt konsekvent och helt fel.
+  </p>
+
+  <table class="diff-table">
+    <tr><th>v3 påstod</th><th>Verkligheten (verifierad 16 juli)</th></tr>
+    <tr><td class="was">"Chatt 2–8 i sin helhet: ej påbörjat"</td><td class="is">Samtliga sidor finns och är kodade: ChatPage (194 rader), QuizPage (158), FlashcardsPage (142), WritingPage (143), ExamPage (193), AlarmsPage (111), TimerPage (178), api.ts (343)</td></tr>
+    <tr><td class="was">"App.tsx saknar helt routing"</td><td class="is">react-router-dom installerat, StudentRoutes/TeacherRoutes finns, rollbaserad routing fungerar</td></tr>
+    <tr><td class="was">"useProfile.tsx ska byggas"</td><td class="is">Fanns redan sedan 6 juli</td></tr>
+    <tr><td class="was">"join_code är en kolumn på classes"</td><td class="is"><code>classes</code> har ingen join_code-kolumn. Koderna ligger i historiktabellen <code>class_join_codes</code></td></tr>
+    <tr><td class="was">"Join-kod-rotation: ej byggt, ingen kod syns"</td><td class="is"><code>rotate_join_code(_class_id)</code> finns i databasen, fungerar, med äganderättskoll</td></tr>
+    <tr><td class="was">"Exakt implementation av kodrotation är olöst"</td><td class="is">Löst av verkligheten: historiktabell, inte is_active-flagga</td></tr>
+    <tr><td class="was">"7 Edge Functions"</td><td class="is">8 — <code>send-push-notification</code> saknas i uppräkningen</td></tr>
+    <tr><td class="was">"build-ai-context måste skrivas om för flera klasser"</td><td class="is">Den slår inte upp klasser alls. Materialdelen är inte skriven, inte "fel skriven"</td></tr>
+    <tr><td class="was">"TeacherDashboardPage listar redan lärarens klasser via classes.getMine()"</td><td class="is">Sidan finns, men anropar inte <code>classes.getMine()</code>. Klass-skapande går via RPC <code>create_class</code></td></tr>
+  </table>
+
+  <div class="callout">
+    <h3>Regel för alla framtida chattar</h3>
+    <p>Fråga databasen och filsystemet innan du tror på detta dokument. Ett <code>select column_name from
+    information_schema.columns</code> tar tre sekunder och hade sparat flera timmar den 16 juli. Om
+    verkligheten och dokumentet säger olika saker: <b>verkligheten har rätt, och dokumentet ska rättas
+    innan arbetet fortsätter.</b></p>
+  </div>
+</section>
+
+<section id="s2">
+  <h1 class="sec-title"><span class="sec-num">02</span> Var koden och verktygen faktiskt ligger</h1>
+  <p class="sec-sub">Windows-maskin, PowerShell. Sökvägarna är exakta och verifierade.</p>
+
+  <h2 class="sub-title">2.1 Mappar</h2>
+  <table>
+    <tr><th>Sökväg</th><th>Vad</th><th>Status</th></tr>
+    <tr><td><span class="path">C:\School-mvp</span></td><td>Frontend: React + TypeScript + Vite</td><td><span class="badge badge-ok">Skarp</span> git + node_modules + .env. Allt arbete sker här.</td></tr>
+    <tr><td><span class="path">C:\skolai-functions</span></td><td>Supabase Edge Functions + CLI-projekt</td><td><span class="badge badge-ok">Skarp</span> länkad till projekt <code>skolai</code></td></tr>
+    <tr><td><span class="path">C:\Users\Mimmi\School-mvp-login\School-mvp</span></td><td>Gammal kopia av frontend</td><td><span class="badge badge-bad">Radera</span> innehållet är kopierat in i C:\School-mvp</td></tr>
+    <tr><td><span class="path">C:\Users\Mimmi\Downloads\School-mvp-login\School-mvp</span></td><td>Gammal kopia i Downloads</td><td><span class="badge badge-bad">Radera</span></td></tr>
+  </table>
+
+  <div class="card warn">
+    <div class="card-title"><span class="badge badge-warn">Gör detta</span> Döp om de gamla kopiorna</div>
+    <div class="card-body">
+      <p>Så länge de finns kommer någon att redigera fel mapp och undra varför ingenting händer. Det hände
+      redan: en månads arbete låg i en mapp utan git medan git-repot innehöll juni-kod.</p>
+      <pre class="code-block">Rename-Item "C:\Users\Mimmi\School-mvp-login" "_GAMMAL_School-mvp-login"
+Rename-Item "C:\Users\Mimmi\Downloads\School-mvp-login" "_GAMMAL_Downloads-School-mvp-login"</pre>
+    </div>
+  </div>
+
+  <h2 class="sub-title">2.2 Supabase</h2>
+  <table>
+    <tr><th>Sak</th><th>Värde</th></tr>
+    <tr><td>Projektnamn</td><td><code>skolai</code></td></tr>
+    <tr><td>Project ref</td><td><code>lomxkcnovtqgtkpbivkg</code></td></tr>
+    <tr><td>Region</td><td>EU (Irland) — måste bevaras vid migrering till skarp drift</td></tr>
+    <tr><td>Arbetssätt</td><td><b>SQL Editor i webbläsaren</b>, inte CLI. Se 6.4.</td></tr>
+  </table>
+
+  <div class="card bad">
+    <div class="card-title"><span class="badge badge-bad">Säkerhet</span> Databaslösenordet ska bytas</div>
+    <div class="card-body">
+      <p>Databaslösenordet klistrades in i en AI-chatt den 16 juli och ser ut att vara återanvänt från annat
+      håll. Det är inte bytt. <b>Byt det innan piloten:</b> Supabase → Project Settings → Database → Reset
+      database password. Systemet ska hantera elevers personuppgifter i höst.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">2.3 Miljövariabler</h2>
+  <p class="sec-sub"><code>.env</code> i <span class="path">C:\School-mvp</span>, korrekt git-ignorerad (verifierat med <code>git check-ignore .env</code>).</p>
+  <pre class="code-block">VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+VITE_N8N_WEBHOOK_BASE      <span class="com">// pekar på laptopen — se 0/n8n</span></pre>
+</section>
+<section id="s3">
+  <h1 class="sec-title"><span class="sec-num">03</span> Databasen — verifierad sanning <span class="sec-priority">Gissa inte</span></h1>
+  <p class="sec-sub">
+    Kolumnlistorna nedan kommer från <code>information_schema.columns</code> den 16 juli. Funktionerna från
+    <code>pg_get_functiondef</code>. Detta är facit — inte en beskrivning av vad som var tänkt.
+  </p>
+
+  <h2 class="sub-title">3.1 Tabeller</h2>
+
+  <div class="er-diagram">
+    <div class="er-table">
+      <div class="er-name">schools</div>
+      <div class="er-field pk">id (uuid)</div>
+      <div class="er-field">name</div>
+      <div class="er-field">municipality</div>
+      <div class="er-field">created_at</div>
+    </div>
+    <span class="arrow">←</span>
+    <div class="er-table">
+      <div class="er-name">student_profiles</div>
+      <div class="er-field pk">id (uuid)</div>
+      <div class="er-field fk">user_id → auth.users</div>
+      <div class="er-field fk">school_id (nullable)</div>
+      <div class="er-field">username (nullable)</div>
+      <div class="er-field">grade_goals (jsonb)</div>
+      <div class="er-field">strengths (jsonb)</div>
+      <div class="er-field">weaknesses (jsonb)</div>
+      <div class="er-field">preferred_style</div>
+      <div class="er-field">streak (default 0)</div>
+      <div class="er-field">streak_last_active</div>
+      <div class="er-field">updated_at</div>
+    </div>
+    <div class="er-table">
+      <div class="er-name">teacher_profiles</div>
+      <div class="er-field pk">id (uuid)</div>
+      <div class="er-field fk">user_id → auth.users</div>
+      <div class="er-field fk">school_id (nullable*)</div>
+      <div class="er-field">username (nullable)</div>
+      <div class="er-field">created_at</div>
+    </div>
+    <div class="er-table">
+      <div class="er-name">classes</div>
+      <div class="er-field pk">id (uuid)</div>
+      <div class="er-field fk">teacher_id</div>
+      <div class="er-field fk">school_id (NOT NULL)</div>
+      <div class="er-field">name</div>
+      <div class="er-field">subject</div>
+    </div>
+    <span class="arrow">→</span>
+    <div class="er-table">
+      <div class="er-name">class_join_codes</div>
+      <div class="er-field pk">id (uuid)</div>
+      <div class="er-field fk">class_id</div>
+      <div class="er-field">code (text)</div>
+      <div class="er-field">active (boolean)</div>
+      <div class="er-field">created_at</div>
+    </div>
+    <div class="er-table">
+      <div class="er-name">student_class_memberships</div>
+      <div class="er-field pk">id (uuid)</div>
+      <div class="er-field fk">student_id → student_profiles</div>
+      <div class="er-field fk">class_id → classes</div>
+      <div class="er-field">joined_at</div>
+      <div class="er-field">unique(student_id, class_id)</div>
+    </div>
+  </div>
+
+  <p class="sec-sub">
+    <b>*</b> <code>teacher_profiles.school_id</code> gjordes nullable den 16 juli, för att en trigger som
+    kraschar på NOT NULL dödar hela registreringen ("Database error saving new user"). Bättre ett konto utan
+    skola än inget konto alls. <b>Men <code>classes.school_id</code> är fortfarande NOT NULL</b> — en lärare
+    utan skola kan inte skapa klasser.
+  </p>
+
+  <p class="sec-sub">
+    Övriga tabeller (byggda tidigare, orörda): <code>chat_messages</code>, <code>quiz_results</code>,
+    <code>flashcard_results</code>, <code>writing_tasks</code>, <code>study_sessions</code>,
+    <code>study_alarms</code>, <code>exams</code>, <code>push_subscriptions</code>, samt
+    <code>teacher_materials</code> (refereras av planen, ej verifierad).
+  </p>
+
+  <h2 class="sub-title">3.2 Databasfunktioner (RPC)</h2>
+  <table>
+    <tr><th>Funktion</th><th>Signatur</th><th>Status</th></tr>
+    <tr>
+      <td><code>join_class_by_code</code></td>
+      <td><code>(_code text)</code> → table med kolumn <code>result</code></td>
+      <td><span class="badge badge-ok">I bruk</span> Detta är den frontend faktiskt anropar från <code>useProfile.joinClass()</code>. Returvärden: <code>invalid_code</code>, <code>wrong_school</code>, <code>no_profile</code>, <code>already_member</code>, annars OK.</td>
+    </tr>
+    <tr>
+      <td><code>join_class_with_code</code></td>
+      <td><code>(p_code text)</code> → jsonb</td>
+      <td><span class="badge badge-warn">Död kod</span> Skriven 16 juli innan det upptäcktes att en join-funktion redan fanns. Anropas av ingenting. <b>Bör raderas</b> för att inte förvirra: <code>drop function join_class_with_code(text);</code></td>
+    </tr>
+    <tr>
+      <td><code>rotate_join_code</code></td>
+      <td><code>(_class_id uuid)</code> → text</td>
+      <td><span class="badge badge-ok">I bruk</span> Inaktiverar alla aktiva koder för klassen, skapar ny, returnerar koden. Kastar exception vid fel (ej jsonb!). Kod: <code>upper(substr(md5(random()::text),1,6))</code> — kan innehålla 0/1 som elever läser fel.</td>
+    </tr>
+    <tr>
+      <td><code>create_class</code></td>
+      <td>RPC, anropas från lärarens klassformulär</td>
+      <td><span class="badge badge-info">Finns</span> Ej granskad i detalj</td>
+    </tr>
+    <tr>
+      <td><code>my_student_id</code></td>
+      <td>() → uuid</td>
+      <td><span class="badge badge-ok">Hjälpfunktion</span> security definer, bryter RLS-rekursion</td>
+    </tr>
+    <tr>
+      <td><code>my_class_ids</code></td>
+      <td>() → setof uuid</td>
+      <td><span class="badge badge-ok">Hjälpfunktion</span></td>
+    </tr>
+    <tr>
+      <td><code>my_taught_class_ids</code></td>
+      <td>() → setof uuid</td>
+      <td><span class="badge badge-ok">Hjälpfunktion</span></td>
+    </tr>
+    <tr>
+      <td><code>handle_new_user</code></td>
+      <td>trigger på <code>auth.users</code></td>
+      <td><span class="badge badge-ok">Kritisk</span> Se 3.3</td>
+    </tr>
+    <tr>
+      <td><code>enforce_same_school</code></td>
+      <td>trigger på <code>student_class_memberships</code></td>
+      <td><span class="badge badge-ok">Kritisk</span> Se 3.3</td>
+    </tr>
+  </table>
+
+  <h2 class="sub-title">3.3 Triggers</h2>
+
+  <div class="card ok">
+    <div class="card-title"><code>on_auth_user_created</code> → <code>handle_new_user()</code></div>
+    <div class="card-body">
+      <p>Skapar <code>student_profiles</code>- eller <code>teacher_profiles</code>-raden i samma ögonblick som
+      auth-kontot, utifrån <code>raw_user_meta_data</code>: <code>role</code>, <code>school_id</code>,
+      <code>username</code>.</p>
+      <p><b>Varför den finns:</b> tidigare skapade <code>signUp()</code> profilen manuellt efter att kontot
+      skapats. Men <code>onAuthStateChange</code> hann fyra, appen routade till dashboarden, och dashboarden
+      frågade efter en profil som ännu inte fanns. Resultat: "Kunde inte hämta din profil" för varje ny
+      användare. Med 30 elever den 17 augusti hade alla 30 träffat det.</p>
+      <p><b>Viktigt:</b> funktionen har en inre <code>exception when others</code> som loggar en varning istället
+      för att fälla registreringen. Utan den dödar ett profilfel hela kontot ("Database error saving new user").
+      Rör inte den konstruktionen.</p>
+      <p><b>Konsekvens:</b> <code>useAuth.signUp()</code> får INTE skapa profilen själv — då blir det 409 Conflict.</p>
+    </div>
+  </div>
+
+  <div class="card ok">
+    <div class="card-title"><code>trg_scm_same_school</code> → <code>enforce_same_school()</code></div>
+    <div class="card-body">
+      <p>Before insert/update på <code>student_class_memberships</code>. Nekar om elevens och klassens
+      <code>school_id</code> skiljer sig — <b>och nekar även om någon av dem är NULL</b> (fail closed).</p>
+      <p><b>Varför:</b> skolkollen fanns bara inuti join-funktionen. En framtida INSERT-policy, ett
+      service-role-anrop eller en ny kodväg hade kringgått den helt. Nu är regeln i databasen, oberoende av
+      vem som frågar. Detta är försvar-i-djupet enligt sektion 9.</p>
+      <p><span class="badge badge-warn">Otestad</span> Se 5.2.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">3.4 RLS-policyer (verifierade)</h2>
+  <table>
+    <tr><th>Tabell</th><th>Policy</th><th>Kommando</th></tr>
+    <tr><td>schools</td><td>anyone can read schools</td><td>SELECT (true — krävs av skolväljaren före inloggning)</td></tr>
+    <tr><td>schools</td><td>authenticated can create school<br>+ 2 dubbletter</td><td>INSERT — <span class="badge badge-warn">städa</span> se 5.5</td></tr>
+    <tr><td>student_profiles</td><td>student_owns_profile + "own profile"</td><td>ALL — <span class="badge badge-warn">dubblett</span></td></tr>
+    <tr><td>teacher_profiles</td><td>teacher_owns_profile + "own teacher profile"</td><td>ALL — <span class="badge badge-warn">dubblett</span></td></tr>
+    <tr><td>classes</td><td>teacher_owns_class</td><td>ALL (äganderätt + school_id-match)</td></tr>
+    <tr><td>classes</td><td>student_reads_own_classes</td><td>SELECT via <code>my_class_ids()</code></td></tr>
+    <tr><td>class_join_codes</td><td>teacher_manages_own_codes</td><td>ALL</td></tr>
+    <tr><td>student_class_memberships</td><td>student_reads_own_memberships</td><td>SELECT via <code>my_student_id()</code></td></tr>
+    <tr><td>student_class_memberships</td><td>student_leaves_own_class</td><td>DELETE via <code>my_student_id()</code></td></tr>
+    <tr><td>student_class_memberships</td><td>teacher_reads_own_class_memberships</td><td>SELECT via <code>my_taught_class_ids()</code></td></tr>
+  </table>
+
+  <div class="callout">
+    <h3>Två RLS-regler som måste sitta i ryggmärgen</h3>
+    <p><b>1. Permissiva policyer OR:as ihop.</b> Vill du begränsa något räcker det inte att lägga till en
+    strängare policy — du måste ta bort den bredare. Planen sa "lägg till en INSERT-policy som kräver
+    skolmatchning"; det hade inte begränsat något alls eftersom den befintliga <code>FOR ALL</code>-policyn
+    ändå släppte igenom.</p>
+    <p><b>2. Policyer kan skapa oändlig rekursion.</b> Om policy A frågar tabell B vars policy frågar tabell A
+    ger Postgres 500. Lösningen är <code>security definer</code>-funktioner som slår upp utanför RLS. Det är
+    därför <code>my_student_id()</code>, <code>my_class_ids()</code> och <code>my_taught_class_ids()</code> finns.</p>
+  </div>
+
+  <h2 class="sub-title">3.5 Edge Functions — 8 st, deployade</h2>
+  <table>
+    <tr><th>Funktion</th><th>Status</th></tr>
+    <tr><td><code>build-ai-context</code></td><td><span class="badge badge-bad">Ofullständig</span> Navet för alla AI-anrop. Hämtar profil, prov (30 dgr), sessioner (7 dgr), quizstatistik. <b>Hämtar inget lärarmaterial och slår inte upp klasser.</b></td></tr>
+    <tr><td><code>update-streak</code></td><td><span class="badge badge-warn">Ska skrivas om</span> Räknar pluggdagar; beslutet är larm-baserad streak</td></tr>
+    <tr><td><code>update-profile</code></td><td><span class="badge badge-ok">Fungerar</span></td></tr>
+    <tr><td><code>dashboard-suggestions</code></td><td><span class="badge badge-ok">Fungerar</span></td></tr>
+    <tr><td><code>status-messages</code></td><td><span class="badge badge-ok">Fungerar</span></td></tr>
+    <tr><td><code>save-quiz-result</code></td><td><span class="badge badge-ok">Fungerar</span></td></tr>
+    <tr><td><code>send-push-notification</code></td><td><span class="badge badge-info">Finns</span> Saknades helt i v3:s uppräkning</td></tr>
+    <tr><td><code>delete-user-data</code></td><td><span class="badge badge-warn">Lucka</span> Raderar 8 tabeller + auth-kontot, men <b>inte <code>push_subscriptions</code></b>. GDPR-krav i sektion 9 säger ALL data. <code>student_class_memberships</code> täcks av cascade.</td></tr>
+  </table>
+</section>
+
+<section id="s4">
+  <h1 class="sec-title"><span class="sec-num">04</span> Frontend — verifierad status</h1>
+  <p class="sec-sub">React + TypeScript + Vite. Repo: <code>Axel-kram/School-mvp</code>. Navy/vit/blå, amber enbart på streak.</p>
+
+  <h2 class="sub-title">4.1 Filstruktur (faktisk)</h2>
+  <div class="file-tree">
+C:\School-mvp\
+├── .env                    <span class="comment">// git-ignorerad, verifierat</span>
+├── .env.example
+├── index.html
+├── package.json / tsconfig / vite.config.ts
+└── <span class="dir">src/</span>
+    ├── App.tsx             <span class="comment">// rollbaserad routing + ProfileProvider</span>
+    ├── main.tsx            <span class="comment">// AuthProvider</span>
+    ├── index.css           <span class="comment">// 703 rader — juli-versionen</span>
+    ├── skolai-pages.css    <span class="comment">// v4: återställda juni-klasser, importeras av App.tsx</span>
+    ├── <span class="dir">components/</span>
+    │   ├── TopBar.tsx      <span class="comment">// props: title, showSubjects, onBack + ämnesväljare</span>
+    │   ├── BottomNav.tsx   <span class="comment">// Hem, Chatt, Prov, Larm, Profil</span>
+    │   ├── TeacherTopBar.tsx
+    │   └── SchoolSelect.tsx
+    ├── <span class="dir">hooks/</span>
+    │   ├── useAuth.tsx     <span class="comment">// signUp skickar role+school_id+username i metadata</span>
+    │   ├── useProfile.tsx  <span class="comment">// CONTEXT. Exporterar även SUBJECTS</span>
+    │   ├── useTeacherClasses.tsx
+    │   ├── useClassDetail.tsx
+    │   └── useDarkMode.tsx
+    ├── <span class="dir">lib/</span>
+    │   ├── supabase.ts     <span class="comment">// klient + typer: Role, School, GradeGoal, SessionType,</span>
+    │   │                   <span class="comment">// StudentProfile, StudySession, Exam, StudyAlarm</span>
+    │   └── api.ts          <span class="comment">// 343 rader: auth, profile, sessions, quiz, flashcards,</span>
+    │                       <span class="comment">// writing, examQuestions, chat, exams, alarms, dashboard, gdpr</span>
+    └── <span class="dir">pages/</span>
+        ├── LoginPage.tsx           <span class="comment">// roll + skolval + username</span>
+        ├── StudentRoutes.tsx       <span class="comment">// 12 rutter</span>
+        ├── DashboardPage.tsx       <span class="comment">// klasskort + 6 genvägar + join-kod</span>
+        ├── ProfilePage.tsx
+        ├── ChatPage.tsx / QuizPage.tsx / FlashcardsPage.tsx
+        ├── WritingPage.tsx / ExamPage.tsx / ExamsPage.tsx / AddExamPage.tsx
+        ├── AlarmsPage.tsx / AddAlarmPage.tsx / TimerPage.tsx
+        ├── TeacherRoutes.tsx
+        ├── TeacherDashboardPage.tsx
+        └── TeacherClassPage.tsx    <span class="comment">// join-kod + "Skapa ny kod" + elevlista</span>
+  </div>
+
+  <h2 class="sub-title">4.2 Rutter (elev)</h2>
+  <p class="sec-sub">
+    <code>/dashboard</code> · <code>/profil</code> · <code>/chat</code> · <code>/quiz</code> ·
+    <code>/flashcards</code> · <code>/writing</code> · <code>/exam</code> · <code>/exams</code> ·
+    <code>/exams/add</code> · <code>/alarms</code> · <code>/alarms/add</code> · <code>/timer</code>.
+    <code>/</code> → redirect till <code>/dashboard</code>.
+  </p>
+
+  <div class="card warn">
+    <div class="card-title"><span class="badge badge-warn">Arkitektur</span> Två generationer kod som måste hållas ihop</div>
+    <div class="card-body">
+      <p>Juni-sidorna (Chat, Quiz, Flashcards, Writing, Exam, Timer) vill ha
+      <code>{ currentSubject, gradeGoals, studentProfile }</code> från <code>useProfile</code>.
+      Juli-sidorna (Dashboard, Profil, TopBar) vill ha <code>{ profile, loading, error, joinClass }</code>.
+      <b>v4:s useProfile returnerar båda.</b> Ta inte bort den ena halvan.</p>
+      <p>Juni-sidorna renderar <b>sin egen</b> TopBar + BottomNav. Därför har <code>StudentRoutes</code> ingen
+      layout-wrapper — annars blir det dubbla menyrader. Dashboard och Profil renderar sina egna för att matcha.</p>
+      <p><code>useProfile</code> är en <b>context</b> (<code>ProfileProvider</code> i App.tsx), inte en vanlig
+      hook. Tidigare gjorde varje komponent sin egen hämtning med sin egen state — dashboarden kunde aldrig
+      tala om för chatten vilket ämne eleven valt, och samma anrop syntes dubbelt i Network-fliken.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s5">
+  <h1 class="sec-title"><span class="sec-num">05</span> Kända buggar och luckor <span class="sec-priority">Åtgärdslista</span></h1>
+
+  <div class="card ok">
+    <div class="card-title">5.1 <span class="badge badge-ok">Löst 17 juli</span> Importsyntax — inte Vite-cache</div>
+    <div class="card-body">
+      <p>v4 pekade ut Vite-cache som blockerare. Fel. Felet överlevde en omstart av hela datorn.</p>
+      <p><b>Verklig orsak:</b> <code>api.ts</code> rad 1 importerade typer som värden:</p>
+      <pre class="code-block"><span class="com">// FEL — GradeGoal m.fl. ar interfaces och finns inte vid korning</span>
+import { supabase, GradeGoal, StudentProfile, StudySession, Exam, StudyAlarm } from './supabase'
+
+<span class="com">// RATT</span>
+import { supabase } from './supabase'
+import type { GradeGoal, StudentProfile, StudySession, Exam, StudyAlarm } from './supabase'</pre>
+      <p>Samma fel: <code>api.ts</code> rad 300 (<code>export { StudyAlarm }</code> → <code>export type</code>),
+      <code>AddExamPage</code>, <code>ExamPage</code>, <code>AlarmsPage</code>. Alla rättade.</p>
+      <p><b>Lärdom:</b> <code>does not provide an export named 'X'</code> där X är en typ = importsyntax, inte
+      cache. Koden hade varit trasig sedan juni utan att någon märkte det — sidorna var inte inkopplade i
+      routingen, så de kraschade i tysthet.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">5.2 <span class="badge badge-warn">Otestad</span> Fel-skola-spärren</div>
+    <div class="card-body">
+      <p>Chatt 1:s kriterium kräver att en elev avvisas tydligt vid fel skolas kod. Det är aldrig sett hända.
+      Testet påbörjades men kördes aldrig — det gröna "Du har gått med i klassen!" var ett gammalt meddelande.</p>
+      <pre class="code-block"><span class="com">-- Flytta eleven till en annan skola</span>
+insert into schools (name, municipality) values ('Testskolan', 'Umeå');
+update student_profiles set school_id = (select id from schools where name = 'Testskolan');
+delete from student_class_memberships;
+<span class="com">-- Ladda om elevsidan HÅRT, skriv in klassens kod, tryck Gå med.
+-- Förväntat: "Den koden tillhör en klass på en annan skola."
+-- Återställ:</span>
+update student_profiles set school_id = (select school_id from classes limit 1);
+delete from schools where name = 'Testskolan';</pre>
+    </div>
+  </div>
+
+  <div class="card bad">
+    <div class="card-title">5.3 <span class="badge badge-bad">Tyst fel</span> Ämne som fritext spränger hela produkten</div>
+    <div class="card-body">
+      <p><code>build-ai-context</code> matchar klassens <code>subject</code> mot frågans ämne med
+      strängjämförelse. Läraren skriver "Matte 2b" eller "Sam" (det senare hände i testet 16 juli). Eleven
+      frågar om "Matematik". <b>Ingen träff → inget lärarmaterial → AI:n svarar generiskt, utan felmeddelande.</b>
+      Appen ser ut att fungera och gör exakt det som är hela poängen med den, fel.</p>
+      <p><b>Halvvägs löst:</b> <code>useProfile</code> exporterar nu <code>SUBJECTS</code> (fast lista över
+      gymnasieämnen). Elevsidan använder den. <b>Kvar:</b> lärarens klassformulär använder fortfarande ett
+      fritextfält — byt till samma dropdown. Och <code>classes.subject</code> bör snävas in i databasen.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">5.4 <span class="badge badge-warn">Lucka</span> Lärare utan skola kan inte skapa klasser</div>
+    <div class="card-body">
+      <p><code>teacher_profiles.school_id</code> är nullable men <code>classes.school_id</code> är NOT NULL.
+      Blir metadatan tom vid registrering får läraren ett konto men fastnar på
+      <code>null value in column "school_id" of relation "classes" violates not-null constraint</code>.
+      Behövs en vy där läraren kan välja skola i efterhand, eller ett tydligare fel än råtexten från Postgres.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">5.5 <span class="badge badge-warn">Städning</span> Dubbletter av RLS-policyer och död kod</div>
+    <div class="card-body">
+      <p><code>schools</code> har tre INSERT-policyer som gör samma sak; <code>student_profiles</code> och
+      <code>teacher_profiles</code> har två ALL-policyer var. Ofarligt idag (permissiva regler OR:as), men gör
+      en säkerhetsgranskning omöjlig att lita på — man kan inte se vilken regel som gäller. Städa innan
+      granskningen.</p>
+      <p>Radera även <code>join_class_with_code(text)</code>, som inget anropar.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">5.6 <span class="badge badge-warn">UX</span> Join-koder innehåller 0 och 1</div>
+    <div class="card-body">
+      <p><code>rotate_join_code</code> använder <code>md5(random())</code> → hex → kan ge <code>0</code> och
+      <code>1</code>, som elever skriver som O och I. Testkoden var <code>0D3A8B</code>. Byt teckenuppsättning
+      till <code>ABCDEFGHJKLMNPQRSTUVWXYZ23456789</code>. Överväg också ett unikt index på aktiva koder — två
+      klasser med samma aktiva kod gör join tvetydig.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">5.7 <span class="badge badge-warn">Inkonsekvent</span> Två felhanteringsmönster</div>
+    <div class="card-body">
+      <p><code>join_class_by_code</code> returnerar en rad med <code>result</code>-kolumn. <code>rotate_join_code</code>
+      kastar exception. Frontend måste hantera dem olika (<code>data[0].result</code> vs <code>try/catch</code>).
+      Dokumenterat här så nästa chatt inte skriver fel felhantering.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">5.8 <span class="badge badge-warn">Designskuld</span> Fyra CSS-paletter i samma app</div>
+    <div class="card-body">
+      <p>Tre generationer kod ovanpå varandra, utan städning:</p>
+      <ol>
+        <li><code>--color-navy</code>, <code>--color-ink</code>… — <code>index.css</code> :root nr 1</li>
+        <li><code>--paper</code>, <code>--ink</code>, <code>--navy-deep</code>, <code>--blue-accent</code>… — <code>index.css</code> :root nr 2</li>
+        <li><code>--text1</code>, <code>--bg2</code>, <code>--accent</code>, <code>--green-text</code>… — juni-sidornas inline-styles. <b>Fanns aldrig definierade någonstans.</b> En odefinierad <code>var()</code> blir ingenting: elevens chattbubbla fick vit text utan bakgrund och blev osynlig.</li>
+        <li>Mina egna i <code>skolai-pages.css</code> — <b>borttagna</b>. De skrev över nr 2 (filen laddas sist) och ändrade färger på sidor som fungerade.</li>
+      </ol>
+      <p><b>Nuläge:</b> <code>skolai-pages.css</code> definierar palett 3 som alias mot palett 2. Fungerar, men
+      det är lim. Rätt lösning är en palett — inte mitt i en deadline.</p>
+      <p><b>Regel:</b> definiera aldrig om variabler i <code>skolai-pages.css</code> som redan finns i
+      <code>index.css</code>.</p>
+    </div>
+  </div>
+
+  <div class="card bad">
+    <div class="card-title">5.9 <span class="badge badge-bad">Lucka</span> Chatten sparas inte och saknar kontext</div>
+    <div class="card-body">
+      <p><b>Inga samtal sparas.</b> <code>ChatPage</code> håller meddelandena i <code>useState</code> och anropar
+      aldrig <code>chat.saveMessage()</code>, trots att funktionen finns i <code>api.ts</code>. Tabellen
+      <code>chat_messages</code> är tom. Lämnar eleven sidan är samtalet borta. Inom sessionen minns den —
+      hela historiken skickas vid varje fråga.</p>
+      <p><b>Flödet anropar inte <code>build-ai-context</code>.</b> Det använder bara <code>subject</code>,
+      <code>grade_goal</code>, <code>strengths</code>, <code>weaknesses</code> som frontend skickar. Planen har
+      alltid sagt att flöde 01–06 ska hämta kontext via Edge Function. Medvetet val 17 juli: få en sak bevisat
+      fungerande först.</p>
+      <p><b>Ingen personalisering i praktiken.</b> Mekaniken finns, datan saknas: nya profiler har
+      <code>grade_goals: {}</code> och tomma styrkor/svagheter. Flödet defaultar till C.</p>
+      <p><b>Skolverket</b> nämns inte i någon version av planen men efterfrågades 17 juli. Eget beslut som
+      behöver tas, inte antas.</p>
+    </div>
+  </div>
+</section>
+<section id="s6">
+  <h1 class="sec-title"><span class="sec-num">06</span> Fällor som redan kostat timmar <span class="sec-priority">Spar tid</span></h1>
+  <p class="sec-sub">
+    Var och en av dessa har redan bränt en betydande del av en arbetskväll. De är miljöspecifika och står
+    ingenstans annars. Läs dem innan du felsöker något.
+  </p>
+
+  <div class="card bad">
+    <div class="card-title">6.1 Notepad förstör .tsx-filer — <b>använd den aldrig</b></div>
+    <div class="card-body">
+      <p>Två separata sätt, båda tysta:</p>
+      <ul>
+        <li><b>Lägger på .txt</b> — "Spara" på <code>useAuth.tsx</code> skapade <code>useAuth.tsx.txt</code>.
+        Originalet orört. Appen körde gammal kod i över en timme medan vi felsökte "buggar" som inte fanns.</li>
+        <li><b>Sparar som UTF-16</b> — Vite läser filen som skräp och säger
+        <code>does not provide an export named 'useAuth'</code>. <code>Select-String</code> hittar inget i filen
+        trots att texten står där, vilket är den snabbaste diagnosen: <b>hittar Select-String inte en sträng du
+        ser med egna ögon → fel teckenkodning.</b></li>
+      </ul>
+      <p><b>Gör istället:</b> installera VS Code (<code>code C:\School-mvp</code>) eller ta emot filer som zip
+      och packa upp med <code>Expand-Archive</code>. Zip bevarar UTF-8 korrekt — verifierat.</p>
+    </div>
+  </div>
+
+  <div class="card bad">
+    <div class="card-title">6.2 PowerShell — fem konkreta fällor</div>
+    <div class="card-body">
+      <ul>
+        <li><b>Platshållare klistras in bokstavligt.</b> <code>cd path/till/skolai-functions</code> och
+        <code>cd C:\DIN\SÖKVÄG</code> kördes rakt av. Ge alltid exakta sökvägar.</li>
+        <li><b>Linux-syntax fungerar inte.</b> <code>\</code> för radfortsättning är backtick <code>`</code> i
+        PowerShell. <code>mkdir -p</code> är <code>New-Item -ItemType Directory -Force</code>.</li>
+        <li><b>Citattecken runt lösenord är obligatoriskt.</b> <code>!</code> och <code>$</code> betyder saker
+        i PowerShell. <code>$env:X = Hemligt!123</code> sprängs.</li>
+        <li><b>Flerradiga block klistras in trasigt.</b> Ett <code>ForEach-Object</code>-block med pipeline
+        blev tre separata kommandon som alla misslyckades. <b>Ge ett kommando per rad.</b></li>
+        <li><b>Set-Clipboard skrivs över direkt.</b> <code>Get-Content ... | Set-Clipboard</code> följt av att
+        markera terminalen för att visa resultatet → urklipp innehåller nu terminaltexten, inte filerna. Detta
+        hände tre gånger i rad. <b>Använd zip för att flytta filer till en chatt.</b></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">6.3 Tre kopior av projektet — nu ett, håll det så</div>
+    <div class="card-body">
+      <p>Frontend fanns i tre mappar: en med git men juni-kod, en med juli-kod men utan git, en i Downloads.
+      En månads arbete (routing, lärarvy, hooks) fanns bara i den utan versionshantering. Ett felaktigt
+      <code>Remove-Item</code> och det hade varit borta.</p>
+      <p>Diagnos som avgjorde saken: den mapp som har <b>både</b> <code>.git</code> och <code>node_modules</code>
+      är hemmet; <code>LastWriteTime</code> på nyaste filen i <code>src</code> avgör vilken kod som är färskast.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">6.4 Supabase CLI fungerar inte — använd SQL Editor</div>
+    <div class="card-body">
+      <p><code>supabase db push</code> kräver <code>SUPABASE_DB_PASSWORD</code> (databasens lösenord, inte
+      inloggningens) och kraschade ändå med <code>Failed to create login role: Connection terminated due to
+      connection timeout</code> — troligen IPv6-strul, vanligt på Windows.</p>
+      <p><b>Fungerande arbetssätt:</b> klistra in SQL i Supabase SQL Editor i webbläsaren och tryck Run.
+      Migrationerna ligger inte i <code>supabase/migrations/</code> — de är körda direkt. Det betyder att
+      <b>migrationshistoriken är tom</b> och att databasen bara existerar på ett ställe. Acceptabelt för en
+      pilot, men skriv ner varje SQL du kör.</p>
+      <p>Vill du få CLI att fungera senare: <code>supabase link --project-ref lomxkcnovtqgtkpbivkg</code> först,
+      vilket tvingar poolern istället för direktanslutning.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title">6.5 Vite-cache ger falska felmeddelanden</div>
+    <div class="card-body">
+      <p>Se 5.1. Symptomet är ett felmeddelande om en export som bevisligen finns i filen. Kontrollen är
+      DevTools → Sources: syns samma fil dubbelt körs två versioner samtidigt. Också: kolla porten i
+      adressfältet — <code>5174</code> betyder att en gammal server ligger kvar på <code>5173</code>.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">6.6 Felkoder — vad de faktiskt betyder här</div>
+    <div class="card-body">
+      <table>
+        <tr><th>Kod</th><th>Betyder</th><th>Var det satt</th></tr>
+        <tr><td><b>406</b></td><td>"Bad om exakt en rad, fick noll"</td><td><code>.single()</code> mot en profil som inte finns. Nästan alltid ett <b>följdfel</b> — leta uppströms.</td></tr>
+        <tr><td><b>400</b></td><td>Postgres vägrar frågan</td><td>Kolumn som inte finns (<code>username</code>)</td></tr>
+        <tr><td><b>409</b></td><td>Konflikt</td><td>Koden försökte skapa profilen som triggern redan skapat</td></tr>
+        <tr><td><b>422</b></td><td>Signup avvisad</td><td>E-posten finns redan. Använd <code>namn+elev1@gmail.com</code> — plus-tricket ger oändligt med adresser till samma inkorg</td></tr>
+        <tr><td><b>500</b></td><td>Databasen kraschar</td><td>Oändlig RLS-rekursion</td></tr>
+      </table>
+      <p style="margin-top:10px"><b>Metod som fungerade:</b> DevTools → <b>Network</b> (inte Console) → klicka
+      den röda raden → fliken <b>Response</b>. Där står Postgres faktiska text. Console visar bara följdfel och
+      leder fel.</p>
+    </div>
+  </div>
+
+  <div class="card bad">
+    <div class="card-title">6.7 Appen döljer sina egna fel</div>
+    <div class="card-body">
+      <p>Den dyraste buggen i hela projektet: <code>signUp()</code> returnerade ett felmeddelande till
+      LoginPage — men kontot var redan skapat, sessionen fanns, <code>onAuthStateChange</code> hade fyrat, och
+      App routade bort från LoginPage <b>innan felet hann visas</b>. Användaren såg "Kunde inte hämta din profil.
+      Kontakta support." istället för "insert misslyckades: column username does not exist".</p>
+      <p><b>Princip framåt:</b> ett felmeddelande som ingen hinner läsa är värre än inget felmeddelande — det
+      pekar åt fel håll. Varje gång ett fel skrivs till användaren, kontrollera att vyn inte byts under tiden.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">6.8 <span class="badge badge-info">Referens</span> Webhook-kontrakt — vad appen skickar och kräver tillbaka</div>
+    <div class="card-body">
+      <p>Utläst ur <code>src/lib/api.ts</code> den 17 juli. Detta är facit för alla n8n-flöden. Avviker svaret
+      kraschar sidan tyst.</p>
+      <p><span class="badge badge-warn">Kommer ändras</span> <b>Kontraktet nedan saknar autentisering.</b> Ingen
+      <code>user_id</code>, ingen JWT. Det fungerar så länge flödena bara ekar tillbaka det frontend skickar —
+      men i samma sekund <code>/chat</code> anropar <code>build-ai-context</code> blir det en öppen endpoint som
+      läcker data. Se <a href="#s12">12.3</a>. <b>Uppdatera denna tabell samtidigt som koden ändras</b>, annars
+      bygger nästa chatt mot fel spec.</p>
+      <p>Alla anrop: <code>POST {VITE_N8N_WEBHOOK_BASE}/{path}</code>, JSON in, JSON ut.</p>
+      <table>
+        <tr><th>Path</th><th>Appen skickar</th><th>Måste svara</th></tr>
+        <tr>
+          <td><code>chat</code><br><span class="badge badge-ok">Byggd</span></td>
+          <td><code>session_id, subject, grade_goal, messages[{role,content}], strengths[], weaknesses[]</code></td>
+          <td><code>{ reply: string }</code></td>
+        </tr>
+        <tr>
+          <td><code>generate-quiz</code></td>
+          <td><code>subject, grade_goal, weaknesses[]</code></td>
+          <td><b>Array direkt</b> (inte inpackad): <code>[{ question, options[], correct_index, explanation, tip? }]</code></td>
+        </tr>
+        <tr>
+          <td><code>generate-flashcards</code></td>
+          <td><code>subject, grade_goal</code></td>
+          <td><b>Array direkt:</b> <code>[{ front, back }]</code></td>
+        </tr>
+        <tr>
+          <td><code>generate-writing-prompt</code></td>
+          <td><code>subject, grade_goal</code></td>
+          <td><code>{ prompt, hint }</code></td>
+        </tr>
+        <tr>
+          <td><code>writing-feedback</code></td>
+          <td><code>subject, grade_goal, prompt, student_text</code></td>
+          <td><code>{ feedback_content, feedback_structure, feedback_language, challenge? }</code></td>
+        </tr>
+        <tr>
+          <td><code>generate-exam-questions</code></td>
+          <td><code>subject, grade_goal</code></td>
+          <td><b>Array direkt:</b> <code>[{ question, context?, model_answer, grade_criteria:{E,C,A} }]</code></td>
+        </tr>
+        <tr>
+          <td><code>grade-exam-answer</code></td>
+          <td><code>subject, question, student_answer, grade_goal</code></td>
+          <td><code>{ grade: 'E'|'C'|'A', feedback, improvements[] }</code></td>
+        </tr>
+      </table>
+      <p style="margin-top:12px"><b>Fällor vid bygget:</b></p>
+      <ul>
+        <li><b>CORS.</b> Webhook-noden måste ha <code>options.allowedOrigins = "*"</code>, annars blockerar
+        webbläsaren anropet från localhost:5173.</li>
+        <li><b>Webhookdata ligger under <code>body</code></b> — <code>$json.body.subject</code>, inte <code>$json.subject</code>.</li>
+        <li><b>responseMode måste vara <code>responseNode</code></b> och flödet avslutas med Respond to Webhook.</li>
+        <li><b>Active-reglaget.</b> Utan det svarar bara <code>/webhook-test/</code>-URL:en, och bara vid ett anrop.</li>
+        <li><b>Tre av sju returnerar arrayer</b> rakt av, inte objekt. <code>JSON.stringify($json)</code> på ett
+        objekt ger fel form.</li>
+        <li><b>Anthropic-nyckeln</b> ligger i en credential av typen <b>Header Auth</b> (<code>x-api-key</code>),
+        inte typen "Anthropic API" — den senare går inte att välja i HTTP Request-noden.</li>
+      </ul>
+      <p><code>skolai-chat.json</code> är mallen. Kopiera den, byt path, byt prompt, byt uttag i "Plocka svar".</p>
+    </div>
+  </div>
+</section>
+
+<section id="s7">
+  <h1 class="sec-title"><span class="sec-num">07</span> Arbetsordning framåt <span class="sec-priority">4,5 veckor</span></h1>
+
+  <h2 class="sub-title">7.1 Tidsbudgeten går inte ihop med v3:s plan</h2>
+  <div class="card bad">
+    <div class="card-body">
+      <p>v3 planerar nio chattar. Kvar enligt den planen: elevdashboard, chatt, flashcards, quiz,
+      skrivuppgifter, prov, larm, timer, lärarflöde, säkerhetsgranskning, hosting, skarpt test — på 4,5 veckor,
+      vid sidan av allt annat.</p>
+      <p>Den goda nyheten är att mycket redan är byggt. Den dåliga är att det som återstår är det svåraste:
+      <b>materialdelen i <code>build-ai-context</code></b>, som är hela produktidén, plus hosting som inte kan
+      skjutas upp.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">7.2 Rekommenderad nedskärning</h2>
+  <div class="callout">
+    <h3>Vad piloten faktiskt ska bevisa</h3>
+    <p>v3 säger själv att målet är att bevisa konceptet, inte teckna avtal. Då är beviset <b>en enda slinga</b>:
+    läraren laddar upp veckans material → eleven frågar AI:n → svaret handlar om just det. Det är det
+    Google Classroom och ChatGPT inte kan. Allt annat är kringutrustning.</p>
+    <p>Hellre en sak som imponerar på Helena än sju som halvfungerar.</p>
+  </div>
+  <table>
+    <tr><th>Ta med i piloten</th><th>Skjut till efter</th></tr>
+    <tr><td>Registrering + join-kod (klart)</td><td>Quiz</td></tr>
+    <tr><td>Lärarens klass + materialuppladdning</td><td>Flashcards</td></tr>
+    <tr><td>AI-chatt som använder materialet</td><td>Skrivuppgifter</td></tr>
+    <tr><td>Elevdashboard</td><td>Prov + betygsättning</td></tr>
+    <tr><td>n8n på publik hosting</td><td>Larm, timer, streak</td></tr>
+  </table>
+  <p class="sec-sub">
+    Sidorna för de bortskjutna funktionerna finns redan och är inkopplade — de behöver inte raderas. Men de ska
+    inte kosta mer utvecklingstid, och de ska inte visas för Helena om de inte fungerar väl.
+  </p>
+
+  <h2 class="sub-title">7.3 Byggordning</h2>
+  <div class="card">
+    <div class="card-body">
+      <div class="step"><span class="step-num">1</span><div><b>Verifiera frontend</b> — Vite-cache (5.1), klicka igenom alla elevsidor, notera vad som kraschar</div></div>
+      <div class="step"><span class="step-num">2</span><div><b>Fel-skola-testet</b> (5.2) — stänger Chatt 1 på riktigt</div></div>
+      <div class="step"><span class="step-num">3</span><div><b>Ämnesdropdown för lärare</b> (5.3) — annars är materialkopplingen dödfödd</div></div>
+      <div class="step"><span class="step-num">4</span><div><b>n8n till publik hosting</b> — Railway/Render gratisnivå. Verifiera att flöde 01 (/chat) svarar från en annan enhet</div></div>
+      <div class="step"><span class="step-num">5</span><div><b>Lärarens materialuppladdning</b> — Storage + <code>teacher_materials</code> + flöde 09 (/extract-material)</div></div>
+      <div class="step"><span class="step-num">6</span><div><b>build-ai-context: materialdelen</b> — slå upp elevens klasser via <code>student_class_memberships</code>, hämta <code>teacher_materials</code> för rätt ämne, mata in i prompten. <b>Detta är produkten.</b></div></div>
+      <div class="step"><span class="step-num">7</span><div><b>Städning + säkerhetsgranskning</b> — dubbletter (5.5), död kod, <code>push_subscriptions</code> i GDPR-radering, byt DB-lösenord</div></div>
+      <div class="step"><span class="step-num">8</span><div><b>Skarpt test med Mikael</b> på riktig enhet, riktigt nät, riktigt material</div></div>
+    </div>
+  </div>
+</section>
+<section id="s8">
+  <h1 class="sec-title"><span class="sec-num">08</span> Mål, målgrupp och tekniska komponenter</h1>
+  <p class="sec-sub">Bevarat från v3. Detta har inte ändrats — det var statusbilden som var fel, inte visionen.</p>
+
+  <h2 class="sub-title">8.1 Övergripande mål</h2>
+  <div class="card">
+    <div class="card-body">
+      <p>Bygga och driftsätta <b>SkolAI</b>, ett AI-drivet hemmapluggverktyg för svenska gymnasieelever, med en
+      pilotskola i Umeå (rektor <b>Helena</b>, testanvändare <b>Mikael</b>) som första verkliga testmiljö.
+      Målet med piloten är att <b>bevisa konceptet</b> — inte att teckna avtal direkt.</p>
+      <p>Sex funktioner för eleven: AI-studieassistent (chatt) för alla gymnasieämnen, minitest anpassade efter
+      betygsmål, skrivuppgifter med AI-feedback, flashcards, självinställda studielarm (som lärare även kan
+      skicka inför prov), och en lärandestreak för motivation.</p>
+      <p>Princip: <b>Säkert → Enkelt → Effektivt</b>, i den ordningen. Datasäkerhet är högsta prioritet och ska
+      genomsyra alla beslut, inte vara en av flera hänsyn.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">8.2 Tidsram</h2>
+  <p class="sec-sub">
+    Höstterminen 2026 i Umeå kommun börjar <b>17 augusti</b> (åk 1) och <b>19 augusti</b> (åk 2–3).
+    Hård deadline för pilottestning.
+  </p>
+
+  <h2 class="sub-title">8.3 Målgrupp</h2>
+  <div class="card">
+    <div class="card-body">
+      <p><b>Primär:</b> gymnasieelever i Umeå som pluggar hemma, på egen hand, utanför lektionstid. De behöver
+      ett verktyg som känns motiverande snarare än som ännu en skoluppgift, och som ger rätt svårighetsgrad
+      utifrån deras eget betygsmål (E/C/A) per ämne.</p>
+      <p><b>Sekundär:</b> lärare, som laddar upp undervisningsmaterial kopplat till sina klasser, så att AI:n
+      genererar studiematerial baserat på exakt det klassen jobbar med.</p>
+      <p><b>Ribba:</b> systemet ska vara minst lika enkelt att komma igång med som Google Classroom eller
+      SchoolSoft. En elev som fastnar i onboardingen kommer inte tillbaka.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">8.4 n8n — nybyggt 17 juli</h2>
+  <div class="card bad">
+    <div class="card-title"><span class="badge badge-bad">Raderade</span> De nio gamla flödena finns inte längre</div>
+    <div class="card-body">
+      <p>01-chat.json till 09-extract-material.json är <b>borttagna ur n8n</b>. De var obekräftade, ingen visste
+      vad de innehöll, och den gamla <code>chat</code> låg på samma webhook-path som den nya. Beslut 17 juli:
+      bygg om från grunden mot kontrakten i 6.8 istället för att felsöka något ingen förstod.</p>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Flöde</th><th>Path</th><th>Status</th></tr>
+    <tr><td><code>SkolAI — Chat</code><br><code>skolai-chat.json</code></td><td><code>/chat</code></td><td><span class="badge badge-ok">Fungerar</span> Webhook → Bygg prompt → Anthropic → Plocka svar → Svara appen</td></tr>
+    <tr><td>Quiz</td><td><code>/generate-quiz</code></td><td><span class="badge badge-bad">Ej byggd</span></td></tr>
+    <tr><td>Flashcards</td><td><code>/generate-flashcards</code></td><td><span class="badge badge-bad">Ej byggd</span></td></tr>
+    <tr><td>Skrivuppgift</td><td><code>/generate-writing-prompt</code></td><td><span class="badge badge-bad">Ej byggd</span></td></tr>
+    <tr><td>Skrivfeedback</td><td><code>/writing-feedback</code></td><td><span class="badge badge-bad">Ej byggd</span></td></tr>
+    <tr><td>Provfrågor</td><td><code>/generate-exam-questions</code></td><td><span class="badge badge-bad">Ej byggd</span></td></tr>
+    <tr><td>Betygsättning</td><td><code>/grade-exam-answer</code></td><td><span class="badge badge-bad">Ej byggd</span></td></tr>
+    <tr><td>Studielarm (cron)</td><td>—</td><td><span class="badge badge-bad">Ej byggd</span> Gmail-påminnelser</td></tr>
+    <tr><td>Extrahera material</td><td><code>/extract-material</code></td><td><span class="badge badge-bad">Ej byggd</span> Behövs för materialdelen</td></tr>
+  </table>
+
+  <div class="card">
+    <div class="card-body">
+      <p><b>Modell:</b> <code>claude-sonnet-4-6</code> via HTTP Request mot <code>https://api.anthropic.com/v1/messages</code>.
+      Svarar Anthropic <code>model not found</code>, byt till <code>claude-sonnet-5</code> i noden "Bygg prompt".</p>
+      <p><b>Nyckel:</b> credential av typen <b>Header Auth</b>, namn <code>x-api-key</code>. Anthropic-krediter
+      är separata från Claude Pro — de kräver saldo under Billing i console.anthropic.com.</p>
+      <p><b>Starta lokalt:</b> <code>npx n8n</code> i eget terminalfönster → <code>http://localhost:5678</code>.</p>
+      <p><b>Kontrakten för alla sju webhooks: se 6.8.</b></p>
+    </div>
+  </div>
+
+<h2 class="sub-title">8.5 Stack</h2>
+  <table>
+    <tr><th>Lager</th><th>Teknik</th></tr>
+    <tr><td>Frontend</td><td>React + TypeScript + Vite. Repo <code>Axel-kram/School-mvp</code></td></tr>
+    <tr><td>Databas + auth</td><td>Supabase (Postgres, EU/Irland), RLS på alla tabeller</td></tr>
+    <tr><td>Serverlogik</td><td>Supabase Edge Functions (Deno) — 8 st</td></tr>
+    <tr><td>AI-orkestrering</td><td>n8n → Anthropic API (<code>claude-sonnet-4-6</code>)</td></tr>
+    <tr><td>Design</td><td>Navy/vit/blå, amber enbart på streak</td></tr>
+  </table>
+</section>
+
+<section id="s9">
+  <h1 class="sec-title"><span class="sec-num">09</span> Säkerhet och GDPR <span class="sec-priority">Kan stoppa piloten</span></h1>
+  <p class="sec-sub">Bevarat från v3, med tillägg av det som upptäckts sedan dess.</p>
+
+  <table>
+    <tr><th>Krav</th><th>Status</th></tr>
+    <tr><td>RLS på alla tabeller — elev ser bara sin data, lärare bara sina klasser</td><td><span class="badge badge-ok">På plats</span> men dubbletter behöver städas (5.5)</td></tr>
+    <tr><td>Skolseparering som extra lager — RLS kollar ägarskap OCH skoltillhörighet</td><td><span class="badge badge-ok">På plats</span> + databastrigger (3.3). <span class="badge badge-warn">Otestad</span> (5.2)</td></tr>
+    <tr><td>Inga hemliga nycklar i frontend — Anthropic-nyckel och service-role hör hemma i n8n:s miljövariabler</td><td><span class="badge badge-ok">OK</span> <code>.env</code> är git-ignorerad, verifierat</td></tr>
+    <tr><td>GDPR-radering ska ta ALL data</td><td><span class="badge badge-bad">Lucka</span> <code>push_subscriptions</code> raderas inte</td></tr>
+    <tr><td>Data stannar i EU (Supabase Irland)</td><td><span class="badge badge-warn">Delvis</span> se nedan</td></tr>
+    <tr><td>Lärarmaterial inte publikt — bara rätt klass + läraren</td><td><span class="badge badge-info">Ej byggt</span> Storage-policyer saknas</td></tr>
+    <tr><td>Databaslösenord</td><td><span class="badge badge-bad">Exponerat</span> klistrat i chatt 16 juli, ej bytt</td></tr>
+  </table>
+
+  <div class="card bad">
+    <div class="card-title"><span class="badge badge-bad">Måste redas ut</span> Två saker Helena kommer fråga om</div>
+    <div class="card-body">
+      <p><b>1. "Data stannar i EU" är inte hela sanningen.</b> Supabase ligger i Irland, men AI-anropen går till
+      Anthropics API. Det är hanterbart, men det är inte vad meningen lovar. Formulera om, och ta reda på var
+      Anthropic behandlar data.</p>
+      <p><b>2. Personuppgiftsbiträdesavtal saknas.</b> Nämns ingenstans i v3. Det behövs innan riktiga elevers
+      data flödar genom systemet. <b>Detta kan stoppa piloten oavsett hur bra koden är</b> — börja i tid, det
+      är en process med skolan/kommunen, inte en kodfix.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s10">
+  <h1 class="sec-title"><span class="sec-num">10</span> Öppna beslut</h1>
+
+  <table>
+    <tr><th>Fråga</th><th>Läge</th></tr>
+    <tr>
+      <td><b>Streak: larm eller dagar?</b></td>
+      <td><span class="badge badge-warn">Beslutat, bör omprövas</span> Beslut 16 juli: larm. Men befintlig kod räknar dagar och fungerar; beslutet kostar en omskrivning, en ny tabell och ett beroende till Chatt 5 — och straffar den som pluggar utan larm. Se 0.</td>
+    </tr>
+    <tr>
+      <td><b>Ska elevens skolväljare bort?</b></td>
+      <td><span class="badge badge-info">Halvvägs</span> <code>join_class_with_code</code> byggdes med "eleven ärver klassens skola vid första koden" — men den funktionen är död kod. Den som används (<code>join_class_by_code</code>) kräver att skolan redan är satt. Argumentet kvarstår: koden bör vara hela onboardingen, som i Google Classroom. Fel skola vald i en dropdown = eleven låses ute trots rätt kod.</td>
+    </tr>
+    <tr>
+      <td><b>Betygsmål vid onboarding?</b></td>
+      <td><span class="badge badge-info">Öppet</span> v3 lägger ett betygsmålsformulär i Chatt 2. Det är en vägg vid registrering. <code>build-ai-context</code> defaultar redan till C — låt den göra det, och fråga "vad siktar du på?" första gången eleven öppnar ett ämne.</td>
+    </tr>
+    <tr>
+      <td><b>Ämneslista — var ska den bo?</b></td>
+      <td><span class="badge badge-bad">Måste beslutas i chatt A</span> <code>SUBJECTS</code> finns i <code>useProfile.tsx</code>. <code>build-ai-context</code> är Deno och kan inte importera den — två listor som glider isär. Lösning: en <code>subjects</code>-tabell i databasen. Se 12.4.</td>
+    </tr>
+    <tr>
+      <td><b>PDF-extraktion eller inklistrad text?</b></td>
+      <td><span class="badge badge-bad">Måste beslutas före tabellen</span> Avgör schemat för <code>teacher_materials</code>. Rekommendation: bygg för båda, ship inklistrad text först. Se 12.2.</td>
+    </tr>
+    <tr>
+      <td><b>Hur mycket material ryms i prompten?</b></td>
+      <td><span class="badge badge-bad">Måste beslutas före tabellen</span> Urval + tak. Kräver <code>created_at</code>, <code>title</code>, kanske vecka/moment i schemat. Se 12.5.</td>
+    </tr>
+    <tr>
+      <td><b>Skolverket som källa?</b></td>
+      <td><span class="badge badge-info">Otaget</span> Efterfrågades 17 juli, nämns inte i någon planversion. Ta beslutet, anta det inte.</td>
+    </tr>
+    <tr>
+      <td><b>Var ska n8n hostas?</b></td>
+      <td><span class="badge badge-bad">Måste beslutas nu</span> Railway/Render gratisnivå räcker för pilot. Blockerar allt skarpt test.</td>
+    </tr>
+  </table>
+</section>
+
+<section id="s11">
+  <h1 class="sec-title"><span class="sec-num">11</span> Hur du använder denna kunskapsbas</h1>
+
+  <div class="howto">
+    <p><b>Om du är Mimmi:</b> klistra in detta dokument först i varje ny chatt. Uppdatera sektion 0 och 5 varje
+    gång något blir klart eller går sönder — det tar två minuter och är skillnaden mellan en produktiv kväll och
+    en kväll som går åt till att felsöka dokumentets fantasier. <b>Om ett dokument och verkligheten säger olika
+    saker: rätta dokumentet innan du fortsätter bygga.</b></p>
+  </div>
+
+  <div class="callout">
+    <h3>Om du är en AI-modell som får detta som kontext</h3>
+    <p><b>1. Verifiera innan du bygger.</b> Detta dokument var fel om nästan allt i sin förra version. Kör
+    <code>select column_name from information_schema.columns where table_name='x'</code> och
+    <code>Get-ChildItem</code> innan du skriver kod mot något du inte sett. Det kostar sekunder.</p>
+    <p><b>2. Gissa inte om felmeddelanden.</b> Be om DevTools → Network → röd rad → Response. Console visar
+    följdfel. Två gissningar i rad om orsaken kostade en timme den 16 juli.</p>
+    <p><b>3. Ett kommando per rad, exakta sökvägar.</b> Se 6.2. Inga platshållare — de klistras in bokstavligt.</p>
+    <p><b>4. Skicka filer som zip, inte som urklipp eller Notepad-instruktioner.</b> Se 6.1 och 6.2.</p>
+    <p><b>5. Mimmi är inte utvecklare men jobbar snabbt och gärna i terminalen.</b> Förklara vad ett kommando
+    gör, inte hur PowerShell fungerar. Var rak när något är fel — inklusive när det är ditt eget fel.</p>
+    <p><b>6. Det som återstår är inte "sidor som ska byggas".</b> Nästan allt är byggt. Det som återstår är att
+    koppla ihop, testa, och bygga materialdelen som är hela produktidén.</p>
+  </div>
+
+  <h2 class="sub-title">11.1 Dokument och filer i projektet</h2>
+  <table>
+    <tr><th>Namn</th><th>Vad</th></tr>
+    <tr><td><code>skolai-kunskapsbas-v6.html</code></td><td>Detta dokument. Ersätter v3, v4 och v5 — <b>använd inte de äldre</b></td></tr>
+    <tr><td><code>skolai-chat.json</code></td><td>n8n-flödet för <code>/chat</code>. Mall för de sex som återstår</td></tr>
+    <tr><td><code>skolai-kunskapsbas-v4.html</code>, <code>v5.html</code></td><td>Föråldrade. v4 pekade ut Vite-cache som blockerare (fel diagnos, se 5.1). v5 saknade hela sektion 12.</td></tr>
+    <tr><td><code>skolai-kunskapsbas-v3.html</code></td><td>Föråldrad. Behåll enbart som historik. Sektion 0, 4.2 och 5.4 är direkt vilseledande</td></tr>
+    <tr><td>"Arbetsplan: Chatt 2 + Chatt 6"</td><td>Föråldrad. Beskriver bygge av C1/routing/lärarvy som redan fanns. Hade dock <b>rätt</b> om <code>class_join_codes</code>, där v3 hade fel</td></tr>
+    <tr><td><code>skolai-functions.zip</code></td><td>Edge Functions, motsvarar <span class="path">C:\skolai-functions</span></td></tr>
+    <tr><td><code>src.zip</code></td><td>Ögonblicksbild av frontend 16 juli. Skapas om med <code>Compress-Archive -Path C:\School-mvp\src -DestinationPath C:\School-mvp\src.zip -Force</code></td></tr>
+    <tr><td><code>src-fix2.zip</code></td><td>Levererad 16 juli: återställda typer, useProfile som context, StudentRoutes, Dashboard, TopBar, BottomNav, TimerPage, skolai-pages.css</td></tr>
+  </table>
+
+  <h2 class="sub-title">11.2 Snabbkommandon</h2>
+  <pre class="code-block"><span class="com"># Starta frontend</span>
+cd C:\School-mvp; npm run dev
+
+<span class="com"># Nollställ Vite när felmeddelandet inte stämmer med filen</span>
+Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force
+Remove-Item C:\School-mvp\node_modules\.vite -Recurse -Force -ErrorAction SilentlyContinue
+
+<span class="com"># Spara arbetet</span>
+cd C:\School-mvp; git add -A; git commit -m "beskrivning"
+
+<span class="com"># Skicka frontend till en AI-chatt</span>
+Compress-Archive -Path C:\School-mvp\src -DestinationPath C:\School-mvp\src.zip -Force
+
+<span class="com"># Ta emot filer från en AI-chatt</span>
+Expand-Archive -Path "$env:USERPROFILE\Downloads\FILNAMN.zip" -DestinationPath C:\School-mvp -Force
+
+<span class="com"># Ångra allt sedan senaste commit</span>
+cd C:\School-mvp; git checkout .</pre>
+
+  <h2 class="sub-title">11.3 Diagnos-SQL som lönar sig</h2>
+  <pre class="code-block"><span class="com">-- Vilka kolumner finns egentligen?</span>
+<span class="kw">select</span> table_name, column_name, is_nullable, column_default
+<span class="kw">from</span> information_schema.columns
+<span class="kw">where</span> table_name <span class="kw">in</span> (<span class="str">'student_profiles'</span>,<span class="str">'teacher_profiles'</span>,<span class="str">'classes'</span>)
+<span class="kw">order by</span> table_name, ordinal_position;
+
+<span class="com">-- Vilka policyer gäller?</span>
+<span class="kw">select</span> tablename, policyname, cmd <span class="kw">from</span> pg_policies
+<span class="kw">where</span> schemaname=<span class="str">'public'</span> <span class="kw">order by</span> tablename;
+
+<span class="com">-- Vad gör en funktion?</span>
+<span class="kw">select</span> pg_get_functiondef(oid) <span class="kw">from</span> pg_proc <span class="kw">where</span> proname = <span class="str">'join_class_by_code'</span>;
+
+<span class="com">-- Konton, metadata och profiler i en vy</span>
+<span class="kw">select</span> u.email,
+       u.raw_user_meta_data-&gt;&gt;<span class="str">'role'</span> <span class="kw">as</span> roll,
+       u.raw_user_meta_data-&gt;&gt;<span class="str">'school_id'</span> <span class="kw">as</span> skola,
+       tp.id <span class="kw">as</span> lararprofil, sp.id <span class="kw">as</span> elevprofil
+<span class="kw">from</span> auth.users u
+<span class="kw">left join</span> teacher_profiles tp <span class="kw">on</span> tp.user_id = u.id
+<span class="kw">left join</span> student_profiles sp <span class="kw">on</span> sp.user_id = u.id
+<span class="kw">order by</span> u.created_at;
+
+<span class="com">-- Nollställ testdata helt</span>
+<span class="kw">delete from</span> student_class_memberships;
+<span class="kw">delete from</span> student_profiles;
+<span class="kw">delete from</span> teacher_profiles;
+<span class="kw">delete from</span> auth.users;</pre>
+</section>
+
+<section id="s12">
+  <h1 class="sec-title"><span class="sec-num">12</span> Materialdelen — komplett spec <span class="sec-priority">Detta är produkten</span></h1>
+  <p class="sec-sub">
+    Ny i v6. Allt annat i systemet är kringutrustning: registrering, streak, quiz och timer finns i tio andra
+    appar. Det som gör SkolAI till SkolAI är att AI:n svarar utifrån <b>exakt det klassen jobbar med</b>.
+    Det är inte byggt. Denna sektion är hela specen, inklusive fem fällor som spränger bygget om de tas i fel ordning.
+  </p>
+
+  <div class="callout">
+    <h3>Målet, i en mening</h3>
+    <p>Läraren laddar upp veckans material till sin klass. Eleven öppnar chatten och frågar något. Svaret bygger
+    på lärarens material — inte på Claudes allmänbildning. Kan du visa det för Helena, är piloten bevisad.
+    Kan du inte det, spelar resten ingen roll.</p>
+  </div>
+
+  <h2 class="sub-title">12.1 Kör detta FÖRST — verifiera innan du bygger</h2>
+  <div class="card bad">
+    <div class="card-body">
+      <p>Sektion 3.1 säger att <code>teacher_materials</code> "refereras av planen, ej verifierad". Den kan finnas
+      med fel kolumner, vilket är sämre än att den saknas. Samma sak med <code>create_class</code>, som står som
+      "finns, ej granskad" och ligger rakt i vägen för ämnesdropdownen.</p>
+      <pre class="code-block"><span class="com">-- Finns tabellen, och hur ser den ut?</span>
+<span class="kw">select</span> table_name, column_name, data_type, is_nullable
+<span class="kw">from</span> information_schema.columns
+<span class="kw">where</span> table_name = <span class="str">'teacher_materials'</span>
+<span class="kw">order by</span> ordinal_position;
+
+<span class="com">-- Vilka ämnen ligger redan i klasserna? (Se 12.4 — 'Sam' finns garanterat)</span>
+<span class="kw">select</span> id, name, subject <span class="kw">from</span> classes <span class="kw">order by</span> created_at;
+
+<span class="com">-- Vad gör create_class? Måste läsas innan klassformuläret rörs.</span>
+<span class="kw">select</span> pg_get_functiondef(oid) <span class="kw">from</span> pg_proc <span class="kw">where</span> proname = <span class="str">'create_class'</span>;
+
+<span class="com">-- Finns någon Storage-bucket redan?</span>
+<span class="kw">select</span> id, name, public <span class="kw">from</span> storage.buckets;</pre>
+    </div>
+  </div>
+
+  <h2 class="sub-title">12.2 <span class="badge badge-bad">Fälla 1</span> Ingen text kommer ur PDF:en av sig själv</h2>
+  <div class="card bad">
+    <div class="card-body">
+      <p>Den naiva planen är uppladdning → <code>teacher_materials</code> → prompt. Men däremellan måste en PDF
+      bli <b>text</b>. Claude kan inte läsa en Storage-URL, och noden "Bygg prompt" skickar bara en sträng.
+      v3 hade ett flöde <code>09-extract-material.json</code> för detta — det är raderat, och ingen vet vad det gjorde.</p>
+      <p><b>Beslutet påverkar schemat, alltså måste det tas före tabellen skapas.</b></p>
+      <table>
+        <tr><th>Väg</th><th>Innebär</th></tr>
+        <tr><td><b>A. Extrahera vid uppladdning</b></td><td>PDF → text en gång, spara i <code>content_text</code>. Aldrig mer extraktion. Kräver ett extract-flöde eller ett bibliotek.</td></tr>
+        <tr><td><b>B. Bara inklistrad text / .md</b></td><td>Läraren klistrar in. Noll extraktion. Sämre lärarupplevelse, men fungerar på en kväll.</td></tr>
+      </table>
+      <p><b>Rekommendation med 4,5 veckor kvar:</b> bygg schemat med <b>både</b> <code>storage_path</code>
+      (nullable) och <code>content_text</code>. Ship väg B först. Lägg på PDF-extraktion om tiden finns —
+      då slipper du migrera tabellen mitt i.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">12.3 <span class="badge badge-bad">Fälla 2</span> Webhooken vet inte vem som frågar</h2>
+  <div class="card bad">
+    <div class="card-body">
+      <p>Kontraktet i 6.8: <code>session_id, subject, grade_goal, messages[], strengths[], weaknesses[]</code>.
+      <b>Ingen <code>user_id</code>, ingen JWT.</b> <code>build-ai-context</code> ska slå upp elevens klasser —
+      men flödet kan inte tala om vilken elev det gäller.</p>
+      <p><b>Idag är detta bara halvfarligt.</b> <code>/chat</code> ekar tillbaka det frontend redan skickade, så
+      <code>allowedOrigins: "*"</code> utan autentisering läcker ingen data. <i>Men det är redan en öppen proxy
+      till ditt betalda Anthropic-konto</i> — vem som helst med URL:en kan bränna dina krediter. Lokalt spelar
+      det ingen roll. På Railway gör det det.</p>
+      <p><b>Dagen flödet anropar <code>build-ai-context</code> blir det allvarligt.</b> Då lämnar en öppen
+      endpoint ut annan klass material och annan elevs profil till vem som helst med URL:en och ett gissat
+      <code>student_id</code>. Det bryter direkt mot sektion 9: "Lärarens uppladdade material är inte publikt".
+      <b>RLS på tabellen räddar dig inte</b> om n8n kör med service-role-nyckeln — den kringgår all RLS.</p>
+      <p><b>Rätt väg:</b> frontend skickar elevens access token (<code>supabase.auth.getSession()</code>) →
+      n8n vidarebefordrar den i <code>Authorization</code>-headern → <code>build-ai-context</code> kör
+      <i>som eleven</i> → RLS gör jobbet. Ingen service-role någonstans i kedjan.</p>
+      <p><b>Detta ändrar kontraktet i 6.8</b>, som är facit för alla flöden. Uppdatera dokumentet samtidigt som
+      koden, annars bygger nästa chatt mot fel spec.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">12.4 <span class="badge badge-bad">Fälla 3</span> "Sam" ligger redan i databasen</h2>
+  <div class="card bad">
+    <div class="card-body">
+      <p>Ämnesdropdownen (5.3) fixar <b>nya</b> klasser. Testklassen "Greggor" har redan
+      <code>subject = 'Sam'</code>. Utan backfill matchar din egen testklass aldrig — tyst, precis som 5.3
+      beskriver. Du kommer testa materialdelen mot den klassen och tro att kopplingen är trasig.</p>
+      <p><b>Ordningen spelar roll:</b> normalisera befintliga rader <i>först</i>, sedan CHECK-constraint. Tvärtom
+      fallerar migrationen på befintlig data.</p>
+      <pre class="code-block"><span class="com">-- 1. Normalisera. Kolla utfallet av 12.1 forst — det kan finnas fler.</span>
+<span class="kw">update</span> classes <span class="kw">set</span> subject = <span class="str">'Samhällskunskap'</span> <span class="kw">where</span> subject <span class="kw">in</span> (<span class="str">'Sam'</span>,<span class="str">'sam'</span>);
+
+<span class="com">-- 2. Forst DARFTER en constraint eller en subjects-tabell.</span></pre>
+      <p><b>Och en djupare spricka:</b> <code>SUBJECTS</code> bor i <code>useProfile.tsx</code>.
+      <code>build-ai-context</code> är Deno och kan inte importera den. Två listor som glider isär — det öppna
+      beslutet i sektion 10. <b>Lösningen är en <code>subjects</code>-tabell i databasen</b> som både frontend
+      och Edge Functions läser. Ta det beslutet nu, inte när listorna redan divergerat.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">12.5 <span class="badge badge-warn">Fälla 4</span> Hur mycket material ryms i prompten?</h2>
+  <div class="card warn">
+    <div class="card-body">
+      <p><code>skolai-chat.json</code> har <code>max_tokens: 1024</code> och bygger hela systemprompten i noden
+      "Bygg prompt". Ett 40-sidigt PDF får inte plats — vare sig i prompten eller i plånboken.</p>
+      <p>Du behöver <b>urval</b> (senaste N per ämne) och ett <b>tak</b> på antal tecken. Det ställer krav på
+      schemat: <code>created_at</code>, <code>title</code>, och troligen ett fält för vecka eller moment så
+      läraren kan styra vad som är aktuellt. <b>Ännu ett beslut som måste tas innan tabellen skapas.</b></p>
+      <p>Notera också att <code>max_tokens: 1024</code> gäller <i>svarets</i> längd, inte inputens. Men långa
+      prompter kostar pengar per anrop, och en pilot med 30 elever gör många anrop.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">12.6 <span class="badge badge-bad">Fälla 5</span> Hur vet du att svaret kom från materialet?</h2>
+  <div class="card bad">
+    <div class="card-body">
+      <p>Frågar du om Samhällskunskap och får ett bra svar — kom det från lärarens material, eller kan Claude
+      bara ämnet? <b>Du kan inte se skillnaden.</b> Och att gissa är precis vad hela detta dokument finns för
+      att förhindra.</p>
+      <p><b>Testet:</b> ladda upp ett dokument med en detalj modellen omöjligt kan känna till. Hitta på något:
+      <i>"Provet den 3 oktober handlar om Rousseaus tredje princip."</i> Kommer den detaljen tillbaka i svaret
+      fungerar kedjan. Gör den inte det, är den trasig — oavsett hur bra svaret låter.</p>
+      <p><b>Bygg in det permanent:</b> låt <code>build-ai-context</code> returnera <code>materials_used[]</code>
+      och logga det i flödet. Då ser du i n8n:s Executions exakt vilket material som gick in i varje anrop.
+      Utan det är du tillbaka i gissningar.</p>
+    </div>
+  </div>
+
+  <h2 class="sub-title">12.7 Arbetsordning — två chattar</h2>
+  <div class="card">
+    <div class="card-body">
+      <p><b>Slå inte ihop dem.</b> Kontextfönstret tar slut mitt i, och då står du med en halvbyggd tabell och
+      ingen som minns varför.</p>
+      <h3 class="sub-sub-title">Chatt A — databas + uppladdning</h3>
+      <ul>
+        <li>Verifierings-SQL från 12.1</li>
+        <li>Besluta väg A eller B (12.2). Schema med <code>storage_path</code> nullable + <code>content_text</code></li>
+        <li><code>teacher_materials</code> + privat Storage-bucket med <code>class_id</code> i sökvägen
+        — <b>Storage-policyer ser bara sökvägen</b>, inte tabellrader</li>
+        <li>Använd <code>my_class_ids()</code> / <code>my_taught_class_ids()</code> i policyerna, annars
+        RLS-rekursion (3.4)</li>
+        <li>Lärarens uppladdningsvy</li>
+        <li>Ämnesdropdown + backfill + constraint (12.4) — <b>hör hit</b>, det är samma yta och backfillen är SQL</li>
+      </ul>
+      <p><b>Bifoga:</b> denna kunskapsbas + <code>src.zip</code>. <code>skolai-chat.json</code> behövs inte.</p>
+
+      <h3 class="sub-sub-title">Chatt B — kontext + flöde</h3>
+      <ul>
+        <li>Materialdelen i <code>build-ai-context</code></li>
+        <li>JWT genom n8n (12.3) — ändrar kontraktet i 6.8 och <code>api.ts</code></li>
+        <li><code>/chat</code> → <code>build-ai-context</code></li>
+        <li><code>materials_used[]</code> + påhittade-detaljen-testet (12.6)</li>
+      </ul>
+      <p><b>Bifoga:</b> kunskapsbas + <code>src.zip</code> + <code>n8n/skolai-chat.json</code>.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-title"><span class="badge badge-warn">Glöm inte</span> n8n får nya miljövariabler</div>
+    <div class="card-body">
+      <p>När flödet börjar anropa <code>build-ai-context</code> behöver n8n Supabase-URL och nyckel. De måste
+      sättas om vid flytten till Railway/Render. Liten kostnad — men den finns, och den upptäcks annars kvällen
+      före den 17 augusti.</p>
+    </div>
+  </div>
+</section>
+<footer>
+  SkolAI — kunskapsbas v6 · 17 juli 2026 · Ersätter v3, v4 och v5 i sin helhet<br>
+  Skriven mot verifierad databas och körd kod, inte mot planerat innehåll.
+</footer>
+
+</div>
+</body>
+</html>
