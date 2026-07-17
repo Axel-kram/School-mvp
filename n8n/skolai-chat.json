@@ -1,0 +1,104 @@
+{
+  "name": "SkolAI — Chat",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Webhook /chat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "a1000000-0000-4000-8000-00000000000a"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Bygger Anthropic-anropet utifrån det appen skickar.\n// Appen POSTar: { session_id, subject, grade_goal, messages[], strengths[], weaknesses[] }\n\nconst body = $input.first().json.body || {};\n\nconst subject   = (body.subject || '').trim() || 'ditt ämne';\nconst gradeGoal  = ['E', 'C', 'A'].includes(body.grade_goal) ? body.grade_goal : 'C';\nconst strengths  = Array.isArray(body.strengths) ? body.strengths.filter(Boolean) : [];\nconst weaknesses = Array.isArray(body.weaknesses) ? body.weaknesses.filter(Boolean) : [];\n\n// Sanera meddelanden. Anthropic kräver att listan börjar med 'user' och\n// alternerar. Appen kan skicka en tom lista vid första frågan.\nlet messages = Array.isArray(body.messages) ? body.messages : [];\nmessages = messages\n  .filter(m => m && typeof m.content === 'string' && m.content.trim())\n  .map(m => ({\n    role: m.role === 'assistant' ? 'assistant' : 'user',\n    content: m.content.trim(),\n  }));\n\nwhile (messages.length && messages[0].role !== 'user') {\n  messages.shift();\n}\n\nif (!messages.length) {\n  throw new Error('Inga meddelanden att skicka.');\n}\n\n// Behåll de senaste 20 turerna — håller kostnad och svarstid nere.\nif (messages.length > 20) {\n  messages = messages.slice(-20);\n  while (messages.length && messages[0].role !== 'user') messages.shift();\n}\n\nconst nivaBeskrivning = {\n  E: 'Eleven siktar på betyget E. Håll dig till grunderna. Förklara ett steg i taget, med konkreta vardagsexempel. Undvik fackuttryck om du inte förklarar dem direkt.',\n  C: 'Eleven siktar på betyget C. Förklara sambanden, inte bara vad som gäller. Använd ämnets begrepp men förklara dem. Be eleven motivera sina svar.',\n  A: 'Eleven siktar på betyget A. Förvänta dig nyans. Utmana med följdfrågor, be om jämförelser och kritisk granskning. Använd ämnets begrepp obehindrat.',\n};\n\nconst delar = [\n  `Du är SkolAI, en studieassistent för svenska gymnasieelever. Eleven pluggar ${subject} hemma, på egen hand.`,\n  '',\n  nivaBeskrivning[gradeGoal],\n  '',\n  'Så här arbetar du:',\n  '- Svara på svenska, i ett vänligt och rakt tonläge. Prata med eleven, inte till.',\n  '- Ge aldrig färdiga svar på uppgifter rakt av. Led fram till svaret med frågor och delsteg.',\n  '- Håll svaren korta. Ett stycke eller en kort punktlista räcker nästan alltid.',\n  '- Vet du inte, säg det. Hitta aldrig på fakta, årtal eller källor.',\n  `- Håll dig till ${subject}. Frågar eleven om något helt annat, säg vänligt att du är här för ${subject}.`,\n];\n\nif (strengths.length) {\n  delar.push('', `Eleven är redan stark på: ${strengths.join(', ')}. Lägg inte tid på det om eleven inte ber om det.`);\n}\n\nif (weaknesses.length) {\n  delar.push('', `Eleven har haft svårt med: ${weaknesses.join(', ')}. Var extra tydlig där, och koppla gärna nya saker till detta.`);\n}\n\nreturn [{\n  json: {\n    model: 'claude-sonnet-4-6',\n    max_tokens: 1024,\n    system: delar.join('\\n'),\n    messages,\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Bygg prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Anthropic",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Plockar ut texten. Appen läser data.reply och inget annat.\nconst r = $input.first().json;\n\nif (r && Array.isArray(r.content) && r.content[0] && r.content[0].text) {\n  return [{ json: { reply: r.content[0].text } }];\n}\n\n// Anthropic svarade med fel — logga hela svaret i n8n, ge eleven något begripligt.\nconsole.log('Ovantat svar fran Anthropic:', JSON.stringify(r));\n\nconst msg = r && r.error && r.error.message ? r.error.message : 'okänt fel';\n\nreturn [{\n  json: {\n    reply: 'Jag kunde inte svara just nu. Försök igen om en liten stund.',\n    error: msg,\n  },\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "Plocka svar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "Svara appen",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [880, 0]
+    }
+  ],
+  "connections": {
+    "Webhook /chat": {
+      "main": [[{ "node": "Bygg prompt", "type": "main", "index": 0 }]]
+    },
+    "Bygg prompt": {
+      "main": [[{ "node": "Anthropic", "type": "main", "index": 0 }]]
+    },
+    "Anthropic": {
+      "main": [[{ "node": "Plocka svar", "type": "main", "index": 0 }]]
+    },
+    "Plocka svar": {
+      "main": [[{ "node": "Svara appen", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
