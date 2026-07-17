@@ -8,6 +8,37 @@
    fungerade. Använd index.css befintliga variabler istället.
    ============================================================================ */
 
+/* ── Alias för en tredje palett som aldrig definierades ───────────────────────
+   Sidorna använder inline-styles med var(--text1), var(--accent), var(--bg2)
+   osv. Ingen av dem finns i index.css, som har --color-* och --paper/--ink/
+   --navy-*. En odefinierad var() blir INGENTING: elevens egen chattbubbla fick
+   vit text utan bakgrund och blev osynlig.
+
+   Dessa namn krockar inte med index.css — de finns bara här. Därför är detta
+   :root-block säkert, till skillnad från det jag först skrev.
+
+   Rätt lösning på sikt: en palett, inte fyra. Men inte mitt i en deadline. */
+
+:root {
+  --bg0: var(--paper);
+  --bg2: var(--white);
+  --bg3: #e3e9f3;
+
+  --text1: var(--ink);
+  --text2: var(--ink-soft);
+  --text3: #7c8ba5;
+
+  --border: #e1e7f0;
+
+  --accent: var(--blue-accent);
+  --accent-text: var(--blue-accent);
+
+  --green-text: var(--ok);
+  --red-text: var(--bad);
+  --amber: #f5a524;
+  --amber-text: var(--warn);
+}
+
 /* ── Layout ───────────────────────────────────────────────────────────────── */
 
 /* Juni-sidorna wrappar i .app-shell. body har background:var(--color-navy),
