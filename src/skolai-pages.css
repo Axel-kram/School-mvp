@@ -1,0 +1,491 @@
+/* ============================================================================
+   SkolAI — stilar för sidor vars CSS försvann i juli-omskrivningen av index.css
+   Importeras av App.tsx, laddas EFTER index.css.
+
+   VIKTIGT: definierar medvetet INGEN :root. index.css har två :root-block
+   (--color-* och --paper/--ink/--navy-*). Redefinierar man dem här vinner de
+   här värdena, eftersom filen laddas sist — vilket ändrar färger på sidor som
+   fungerade. Använd index.css befintliga variabler istället.
+   ============================================================================ */
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+
+/* Juni-sidorna wrappar i .app-shell. body har background:var(--color-navy),
+   och till skillnad från .student-layout satte .app-shell aldrig någon egen
+   bakgrund — därför lyste mörkblått igenom under mörk text. */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+}
+
+.page-content {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px 100px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0 12px;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.subtitle {
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin: 4px 0 16px;
+}
+
+.card,
+.exam-card,
+.alarm-item {
+  background: var(--white);
+  border: 1px solid #dde4f0;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.card-accent {
+  border-left: 4px solid var(--blue-accent);
+}
+
+.empty-state {
+  color: var(--ink-soft);
+  text-align: center;
+  padding: 28px 16px;
+}
+
+.nudge {
+  background: #eaf1ff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--navy);
+  margin-bottom: 12px;
+  cursor: pointer;
+  border: 1px solid #d6e2fb;
+  text-align: left;
+  width: 100%;
+}
+
+.nudge:hover {
+  border-color: var(--blue-accent);
+}
+
+/* ── TopBar-tillägg ───────────────────────────────────────────────────────── */
+
+.top-bar-left,
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-bar-back {
+  background: transparent;
+  border: 0;
+  color: var(--white);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.top-bar-subjects {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.subject-pill {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.subject-pill-active {
+  background: var(--white);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+/* ── BottomNav-tillägg ────────────────────────────────────────────────────── */
+
+.bottom-nav-icon {
+  display: block;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.bottom-nav-label {
+  font-size: 11px;
+}
+
+/* ── Dashboard: klasskort och genvägar ────────────────────────────────────── */
+
+.dash-section {
+  margin-bottom: 28px;
+}
+
+.class-grid,
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.class-card,
+.action-card {
+  position: relative;
+  text-align: left;
+  background: var(--white);
+  border: 1px solid #dde4f0;
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.class-card:hover,
+.action-card:hover:not(:disabled) {
+  border-color: var(--blue-accent);
+}
+
+.class-card-active {
+  border-color: var(--blue-accent);
+  background: #eaf1ff;
+}
+
+.class-card-name,
+.action-label {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.class-card-subject,
+.action-hint {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.class-card-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--blue-accent);
+}
+
+.action-card:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 20px;
+}
+
+/* ── Formulärelement ──────────────────────────────────────────────────────── */
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 1px solid #dde4f0;
+  border-radius: 10px;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--white);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: 2px solid var(--blue-accent);
+  outline-offset: -1px;
+}
+
+.textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #dde4f0;
+  border-radius: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  color: var(--navy);
+}
+
+.add-link {
+  background: transparent;
+  border: 0;
+  color: var(--blue-accent);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.preset-pill {
+  background: var(--white);
+  border: 1px solid #dde4f0;
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--navy);
+}
+
+.preset-pill.active {
+  background: var(--blue-accent);
+  border-color: var(--blue-accent);
+  color: var(--white);
+}
+
+.grade-picker,
+.day-picker,
+.timer-presets,
+.timer-btns,
+.flash-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Prov ─────────────────────────────────────────────────────────────────── */
+
+.exam-subject {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.exam-date {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.exam-hint {
+  font-size: 13px;
+  color: var(--blue-accent);
+  margin-top: 6px;
+}
+
+/* ── Larm ─────────────────────────────────────────────────────────────────── */
+
+.alarm-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.day-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #dde4f0;
+  background: var(--white);
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.day-dot.active {
+  background: var(--blue-accent);
+  border-color: var(--blue-accent);
+  color: var(--white);
+}
+
+.toggle {
+  width: 44px;
+  height: 25px;
+  border-radius: 999px;
+  border: 0;
+  background: #cfd8e8;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle.on {
+  background: var(--blue-accent);
+}
+
+.toggle-dot {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--white);
+  transition: transform 0.15s;
+}
+
+.toggle.on .toggle-dot {
+  transform: translateX(19px);
+}
+
+/* ── Flashcards ───────────────────────────────────────────────────────────── */
+
+.flashcard-wrap {
+  margin: 20px 0;
+}
+
+.flashcard-face,
+.flashcard-back {
+  background: var(--white);
+  border: 1px solid #dde4f0;
+  border-radius: 16px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.flash-front-text,
+.flash-back-text {
+  font-size: 19px;
+  color: var(--ink);
+}
+
+.flash-hint-label {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 12px;
+}
+
+.flash-btn-yes,
+.flash-btn-no {
+  flex: 1;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.flash-btn-yes {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.flash-btn-no {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+/* ── Skrivfeedback ────────────────────────────────────────────────────────── */
+
+.feedback-row {
+  border-left: 3px solid var(--blue-accent);
+  padding: 8px 0 8px 12px;
+  margin-bottom: 12px;
+}
+
+.feedback-row-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.feedback-row-text {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.feedback-bad {
+  background: var(--bad-bg);
+  color: var(--bad);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* ── Timer ────────────────────────────────────────────────────────────────── */
+
+.timer-ring-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0;
+}
+
+.timer-display,
+.timer-big {
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.timer-sub,
+.timer-motto {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+/* ── Laddning ─────────────────────────────────────────────────────────────── */
+
+.loading-dots {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.loading-dots::after {
+  content: '…';
+  animation: dots 1.2s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '…'; }
+}

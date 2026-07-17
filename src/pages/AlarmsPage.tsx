@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomNav } from '../components/BottomNav'
 import { TopBar } from '../components/TopBar'
-import { alarms as alarmsApi, StudyAlarm } from '../lib/api'
+import { alarms as alarmsApi } from '../lib/api'
+import type { StudyAlarm } from '../lib/api'
 
 const DAYS = ['M', 'T', 'O', 'T', 'F', 'L', 'S']
 const DAY_FULL = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag', 'Söndag']

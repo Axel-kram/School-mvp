@@ -4,7 +4,7 @@ import { TopBar } from '../components/TopBar'
 import { BottomNav } from '../components/BottomNav'
 import { useProfile } from '../hooks/useProfile'
 import { examQuestions as examApi, ExamQuestion, ExamAnswerFeedback, sessions } from '../lib/api'
-import { GradeGoal } from '../lib/supabase'
+import type { GradeGoal } from '../lib/supabase'
 
 export function ExamPage() {
   const navigate = useNavigate()

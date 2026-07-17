@@ -1,4 +1,9 @@
-import { supabase, GradeGoal, StudentProfile, StudySession, Exam, StudyAlarm } from './supabase'
+import { supabase } from './supabase'
+// Typ-import maste vara separat. GradeGoal, StudentProfile m.fl. ar interfaces
+// som forsvinner vid kompilering — en vanlig import av dem far webblasaren att
+// leta efter en export som inte finns vid korning:
+//   "does not provide an export named 'StudyAlarm'"
+import type { GradeGoal, StudentProfile, StudySession, Exam, StudyAlarm } from './supabase'
 
 const N8N_BASE = import.meta.env.VITE_N8N_WEBHOOK_BASE as string
 
@@ -297,7 +302,7 @@ export const exams = {
 
 // ─── Alarms ───────────────────────────────────────────────────────────────────
 
-export { StudyAlarm }
+export type { StudyAlarm }
 
 export const alarms = {
   getAll: async (): Promise<StudyAlarm[]> => {

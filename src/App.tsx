@@ -1,5 +1,7 @@
-﻿import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
+import './skolai-pages.css'
 import { useAuth } from './hooks/useAuth'
+import { ProfileProvider } from './hooks/useProfile'
 import { LoginPage } from './pages/LoginPage'
 import { StudentRoutes } from './pages/StudentRoutes'
 import { TeacherRoutes } from './pages/TeacherRoutes'
@@ -22,7 +24,11 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {role === 'student' && <StudentRoutes />}
+      {role === 'student' && (
+        <ProfileProvider>
+          <StudentRoutes />
+        </ProfileProvider>
+      )}
       {role === 'teacher' && <TeacherRoutes />}
       {role === null && (
         <div className="app-loading">

@@ -52,7 +52,7 @@ export function TimerPage() {
   const start = async () => {
     setRunning(true)
     setFinished(false)
-    const id = await sessions.start(currentSubject, 'chat').catch(() => null)
+    const id = await sessions.start(currentSubject, 'timer').catch(() => null)
     setSessionId(id)
     setSessionStart(Date.now())
   }

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { TopBar } from '../components/TopBar'
 import { BottomNav } from '../components/BottomNav'
 import { exams as examsApi } from '../lib/api'
-import { GradeGoal } from '../lib/supabase'
+import type { GradeGoal } from '../lib/supabase'
 import { SUBJECTS } from '../hooks/useProfile'
 
 export function AddExamPage() {
